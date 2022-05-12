@@ -1,3 +1,0 @@
-[submodule "contracts/contracts-eth"]
-	path = contracts/contracts-eth
-	url = https://git.perun.network/perun/contracts-eth.git
