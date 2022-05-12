@@ -22,6 +22,7 @@ generate_bindings() {
     GENDIR=./generated/$PKG
     mkdir -p $GENDIR
     $ABIGEN --pkg $PKG --sol $CONTRACT_SOL_FILE --out $GENDIR/$CONTRACT_GO_NAME.go --solc $SOLC
+    echo "contract compiled to $GENDIR/$CONTRACT_GO_NAME.go"
 }
 
 generate_bindings ./DominionApp.sol dominionApp
