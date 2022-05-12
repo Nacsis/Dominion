@@ -24,6 +24,6 @@ generate_bindings() {
     $ABIGEN --pkg $PKG --sol $CONTRACT_SOL_FILE --out $GENDIR/$CONTRACT_GO_NAME.go --solc $SOLC
 }
 
-generate_bindings ./TicTacToeApp.sol ticTacToeApp
+generate_bindings ./DominionApp.sol dominionApp
 # generate_bindings ./perun-eth-contracts/contracts/Adjudicator.sol adjudicator
 # generate_bindings ./perun-eth-contracts/contracts/AssetHolderETH.sol assetHolderETH

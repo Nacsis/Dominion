@@ -14,3 +14,11 @@ Then run
 ```
 go run .
 ```
+
+# Dominion
+
+## Installation
+```sh
+asdf plugin add solidity
+asdf install solidity [version]
+```
