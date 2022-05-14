@@ -2,6 +2,15 @@ package app
 
 import "io"
 
+//### Player Constants ###
+type Owner uint8
+
+const (
+	Unowned Owner = iota
+	Player_1
+	Player_2
+)
+
 //### Card Type Constants ###
 type CardType uint8
 
@@ -21,7 +30,7 @@ const (
 )
 
 type Card struct {
-	owner          Player
+	owner          Owner
 	cost           uint8
 	group          CardType
 	dActions       uint8
@@ -37,6 +46,7 @@ type Card struct {
 
 func NewCopper(d *AppData) {
 	c := Card{
+		owner:          Unowned,
 		cost:           0,
 		group:          TreasureCard,
 		dActions:       0,
@@ -62,7 +72,7 @@ func writeCards(w io.Writer, cards [256]Card) error {
 }
 
 func (c Card) WriteCard(w io.Writer) error {
-	uint8_attributes := []uint8{c.owner.id, c.cost, uint8(c.group), c.dActions, c.dBuys, c.dMoney, c.dDraws, c.dVictoryPoints, c.id, uint8(c.name)}
+	uint8_attributes := []uint8{uint8(c.owner), c.cost, uint8(c.group), c.dActions, c.dBuys, c.dMoney, c.dDraws, c.dVictoryPoints, c.id, uint8(c.name)}
 	err := writeUInt8Array(w, uint8_attributes)
 	return err
 }
@@ -72,7 +82,7 @@ func ReadCard(r io.Reader) Card {
 	io.ReadFull(r, buf)
 
 	card := Card{
-		owner:          GetPlayer(buf[0]), //todo: getPlayer Method
+		owner:          Owner(buf[0]),
 		cost:           buf[1],
 		group:          CardType(buf[2]),
 		dActions:       buf[3],
