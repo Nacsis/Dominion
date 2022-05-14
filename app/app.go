@@ -27,7 +27,7 @@ type DominionApp struct {
 	Addr wallet.Address
 }
 
-func newDominionApp(addr wallet.Address) *DominionApp {
+func NewDominionApp(addr wallet.Address) *DominionApp {
 	return &DominionApp{
 		Addr: addr,
 	}
@@ -62,16 +62,10 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 
 	//Read Cards
 	for i := uint8(0); i < d.NumAllCards; i++ {
-		d.AllCards[i] = readCard(r)
+		d.AllCards[i] = ReadCard(r)
 	}
 
 	return &d, err
-}
-
-// ValidInit checks that the initial state is valid.
-func (a *DominionApp) ValidInit(p *channel.Params, s *channel.State) error {
-	//todo
-	return nil
 }
 
 // ValidTransition is called whenever the channel state transitions.
@@ -80,6 +74,6 @@ func (a *DominionApp) ValidTransition(params *channel.Params, from, to *channel.
 	return nil
 }
 
-func getPlayer(i uint8) Player {
+func GetPlayer(i uint8) Player {
 	return Player{i} //todo
 }

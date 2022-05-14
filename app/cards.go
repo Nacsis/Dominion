@@ -35,7 +35,7 @@ type Card struct {
 
 //#### Card constructors ####
 
-func newCopper(id uint8) Card {
+func NewCopper(d *AppData) {
 	c := Card{
 		cost:           0,
 		group:          TreasureCard,
@@ -44,16 +44,16 @@ func newCopper(id uint8) Card {
 		dMoney:         1,
 		dDraws:         0,
 		dVictoryPoints: 0,
-		id:             id}
+		id:             d.NumAllCards}
 
-	return c
+	d.AddCard(c)
 }
 
 //#### Card methods ####
 func writeCards(w io.Writer, cards [256]Card) error {
 	var err error
 	for _, card := range cards {
-		err = card.writeCard(w)
+		err = card.WriteCard(w)
 		if err == nil {
 			continue
 		}
@@ -61,18 +61,18 @@ func writeCards(w io.Writer, cards [256]Card) error {
 	return err
 }
 
-func (c Card) writeCard(w io.Writer) error {
+func (c Card) WriteCard(w io.Writer) error {
 	uint8_attributes := []uint8{c.owner.id, c.cost, uint8(c.group), c.dActions, c.dBuys, c.dMoney, c.dDraws, c.dVictoryPoints, c.id, uint8(c.name)}
 	err := writeUInt8Array(w, uint8_attributes)
 	return err
 }
 
-func readCard(r io.Reader) Card {
+func ReadCard(r io.Reader) Card {
 	buf := make([]byte, 10)
 	io.ReadFull(r, buf)
 
 	card := Card{
-		owner:          getPlayer(buf[0]), //todo: getPlayer Method
+		owner:          GetPlayer(buf[0]), //todo: getPlayer Method
 		cost:           buf[1],
 		group:          CardType(buf[2]),
 		dActions:       buf[3],

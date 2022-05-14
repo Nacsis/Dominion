@@ -32,6 +32,11 @@ func (d *AppData) Clone() channel.Data {
 	return &_d
 }
 
-func calcNextActor(actor uint8) uint8 {
+func CalcNextActor(actor uint8) uint8 {
 	return (actor + 1) % numParts
+}
+
+func (d *AppData) AddCard(c Card) {
+	d.AllCards[d.NumAllCards] = c
+	d.NumAllCards += 1
 }

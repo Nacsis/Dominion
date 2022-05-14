@@ -18,12 +18,12 @@ import (
 	"context"
 	"log"
 	"math/big"
+	"perun.network/perun-examples/app-channel/contracts/generated/dominionApp"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethwallet "perun.network/go-perun/backend/ethereum/wallet"
 
 	"perun.network/perun-examples/app-channel/app"
-	"perun.network/perun-examples/app-channel/contracts/generated/ticTacToeApp"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
@@ -61,13 +61,13 @@ func deployContracts(nodeURL string, chainID uint64, privateKey string) (adj, ah
 		panic(err)
 	}
 
-	const gasLimit = 1100000  // Must be sufficient for deploying TicTacToe.sol.
+	const gasLimit = 1100000 // Must be sufficient for deploying TicTacToe.sol.
 	tops, err := cb.NewTransactor(context.TODO(), gasLimit, acc)
 	if err != nil {
 		panic(err)
 	}
 	// Deploy TicTacToe App.
-	app, tx, _, err := ticTacToeApp.DeployTicTacToeApp(tops, cb)
+	app, tx, _, err := dominionApp.DeployTicTacToeApp(tops, cb)
 	if err != nil {
 		panic(err)
 	}
@@ -87,7 +87,7 @@ func setupGameClient(
 	adjudicator common.Address,
 	asset ethwallet.Address,
 	privateKey string,
-	app *app.TicTacToeApp,
+	app *app.DominionApp,
 	stake channel.Bal,
 ) *client.AppClient {
 	// Create wallet and account.

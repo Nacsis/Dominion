@@ -39,11 +39,11 @@ const (
 
 // AppClient is an app channel client.
 type AppClient struct {
-	perunClient *client.Client    // The core Perun client.
-	account     wallet.Address    // The account we use for on-chain and off-chain transactions.
-	currency    channel.Asset     // The currency we expect to get paid in.
-	stake       channel.Bal       // The amount we put at stake.
-	app         *app.TicTacToeApp // The app definition.
+	perunClient *client.Client   // The core Perun client.
+	account     wallet.Address   // The account we use for on-chain and off-chain transactions.
+	currency    channel.Asset    // The currency we expect to get paid in.
+	stake       channel.Bal      // The amount we put at stake.
+	app         *app.DominionApp // The app definition.
 	channels    chan *TicTacToeChannel
 }
 
@@ -56,7 +56,7 @@ func SetupAppClient(
 	chainID uint64, // chainID is the identifier of the blockchain.
 	adjudicator common.Address, // adjudicator is the address of the adjudicator.
 	asset ethwallet.Address, // asset is the address of the asset holder for our app channels.
-	app *app.TicTacToeApp, // app is the channel app we want to set up the client with.
+	app *app.DominionApp, // app is the channel app we want to set up the client with.
 	stake channel.Bal, // stake is the balance the client is willing to fund the channel with.
 ) (*AppClient, error) {
 	// Create Ethereum client and contract backend.
@@ -170,5 +170,8 @@ func (c *AppClient) AcceptedChannel() *TicTacToeChannel {
 
 // Shutdown gracefully shuts down the client.
 func (c *AppClient) Shutdown() {
-	c.perunClient.Close()
+	err := c.perunClient.Close()
+	if err != nil {
+		return
+	}
 }

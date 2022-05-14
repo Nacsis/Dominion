@@ -41,14 +41,14 @@ func main() {
 	log.Println("Deploying contracts.")
 	adjudicator, assetHolder, appAddress := deployContracts(chainURL, chainID, keyDeployer)
 	asset := *ethwallet.AsWalletAddr(assetHolder)
-	app := app.NewTicTacToeApp(ethwallet.AsWalletAddr(appAddress))
+	dominionApp := app.NewDominionApp(ethwallet.AsWalletAddr(appAddress))
 
 	// Setup clients.
 	log.Println("Setting up clients.")
 	bus := wire.NewLocalBus() // Message bus used for off-chain communication.
 	stake := client.EthToWei(big.NewFloat(5))
-	alice := setupGameClient(bus, chainURL, adjudicator, asset, keyAlice, app, stake)
-	bob := setupGameClient(bus, chainURL, adjudicator, asset, keyBob, app, stake)
+	alice := setupGameClient(bus, chainURL, adjudicator, asset, keyAlice, dominionApp, stake)
+	bob := setupGameClient(bus, chainURL, adjudicator, asset, keyBob, dominionApp, stake)
 
 	// Print balances before transactions.
 	l := newBalanceLogger(chainURL)
@@ -59,31 +59,15 @@ func main() {
 	appAlice := alice.OpenAppChannel(bob.WireAddress())
 	appBob := bob.AcceptedChannel()
 
-	log.Println("Start playing.")
-	log.Println("Alice's turn.")
-	appAlice.Set(2, 0)
+	d := app.AppData{}
+	for i := uint8(0); i < 10; i++ {
+		app.NewCopper(&d)
+	}
 
-	log.Println("Bob's turn.")
-	appBob.Set(0, 0)
-
-	log.Println("Alice's turn.")
-	appAlice.Set(0, 2)
-
-	log.Println("Bob's turn.")
-	appBob.Set(1, 1)
-
-	log.Println("Alice's turn.")
-	appAlice.Set(2, 2)
-
-	log.Println("Bob's turn.")
-	appBob.Set(2, 1)
-
-	// Dispute channel state.
-	log.Println("Alice's turn.")
-	appAlice.ForceSet(1, 2)
-
-	log.Println("Alice wins.")
-	log.Println("Payout.")
+	err := d.Encode(&app.Printer{})
+	if err != nil {
+		return
+	}
 
 	// Payout.
 	appAlice.Settle()
