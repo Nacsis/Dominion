@@ -1,15 +1,27 @@
 package app
 
 import (
-	"github.com/pkg/errors"
 	"io"
+
+	"github.com/pkg/errors"
 	"perun.network/go-perun/channel"
 )
 
+const (
+	NumActionCardsInGame uint8 = 10
+	NumBaseCards         uint8 = 6
+	NumPlayers           uint8 = 2
+)
+
 type AppData struct {
-	NextActor   uint8
-	NumAllCards uint8
-	AllCards    [256]Card
+	NextActor           uint8
+	ActionCardsInvolved [NumActionCardsInGame]ActionCardType
+	CardStock           [NumActionCardsInGame + NumBaseCards]uint8
+	LenCardDecks        [NumPlayers]uint8
+	LenCardTrashs       [NumPlayers]uint8
+	LenCardGrave        uint8
+	// NumAllCards         uint8
+	// AllCards    [256]Card
 }
 
 // Encode encodes app data onto an io.Writer.
