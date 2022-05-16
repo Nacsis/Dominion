@@ -15,7 +15,6 @@
 package app
 
 import (
-	"fmt"
 	"io"
 	"math/big"
 
@@ -67,11 +66,4 @@ func computeFinalBalances(bals channel.Balances, winner channel.Index) channel.B
 		finalBals[i][loser] = big.NewInt(0)
 	}
 	return finalBals
-}
-
-type Printer struct{}
-
-func (*Printer) Write(p []byte) (n int, err error) {
-	fmt.Print(p)
-	return 0, nil
 }

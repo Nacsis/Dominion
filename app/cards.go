@@ -77,6 +77,22 @@ func (c Card) WriteCard(w io.Writer) error {
 	return err
 }
 
+func (c Card) equals(c2 Card) bool {
+	equal :=
+		c.owner == c2.owner &&
+			c.cost == c2.cost &&
+			c.group == c2.group &&
+			c.dActions == c2.dActions &&
+			c.dBuys == c2.dBuys &&
+			c.dMoney == c2.dMoney &&
+			c.dDraws == c2.dDraws &&
+			c.dVictoryPoints == c2.dVictoryPoints &&
+			c.id == c2.id &&
+			c.name == c2.name
+
+	return equal
+}
+
 func ReadCard(r io.Reader) Card {
 	buf := make([]byte, 10)
 	io.ReadFull(r, buf)

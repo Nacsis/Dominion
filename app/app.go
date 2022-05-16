@@ -45,7 +45,8 @@ func (a *DominionApp) InitData(firstActor channel.Index) *AppData {
 }
 
 // DecodeData decodes the channel data.
-func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
+// Habe return type von (channel.Data, error)  abgeändert, zum testen, da ich nicht weiß wie das mit dem Interface geht
+func (a *DominionApp) DecodeData(r io.Reader) (*AppData, error) {
 	d := AppData{}
 
 	var err error
