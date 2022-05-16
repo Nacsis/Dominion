@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/pkg/errors"
@@ -8,9 +9,19 @@ import (
 )
 
 const (
-	NumActionCardsInGame uint8 = 10
-	NumBaseCards         uint8 = 6
-	NumPlayers           uint8 = 2
+	NumActionCardsInGame uint8  = 10
+	NumBaseCards         uint8  = 6
+	NumPlayers           uint8  = 2
+	NumSupplyActionCard  uint8  = 10
+	NumSupplyCopper      uint8  = 60
+	NumSupplySilver      uint8  = 40
+	NumSupplyGold        uint8  = 30
+	NumSupplyEstate      uint8  = 24
+	NumSupplyDuchy       uint8  = 12
+	NumSupplyProvince    uint8  = 12
+	NumMaxCirculation    uint16 = uint16(NumActionCardsInGame)*uint16(NumSupplyActionCard) +
+		uint16(NumSupplyCopper) + uint16(NumSupplySilver) + uint16(NumSupplyGold) +
+		uint16(NumSupplyEstate) + uint16(NumSupplyDuchy) + uint16(NumSupplyProvince)
 )
 
 type AppData struct {
@@ -18,10 +29,27 @@ type AppData struct {
 	ActionCardsInvolved [NumActionCardsInGame]ActionCardType
 	CardStock           [NumActionCardsInGame + NumBaseCards]uint8
 	LenCardDecks        [NumPlayers]uint8
+	LenCardHand         [NumPlayers]uint8
 	LenCardTrashs       [NumPlayers]uint8
 	LenCardGrave        uint8
+	CardsInCirculation  [NumMaxCirculation]CardName // alternative approach: pos in ActionCardsInvolved
 	// NumAllCards         uint8
 	// AllCards    [256]Card
+}
+
+// TODO design an interface instead of CardName?
+func (d *AppData) getDeck(p uint8) ([]CardName, error) {
+	if p == 0 || p > NumPlayers {
+		return nil, fmt.Errorf("Invalid player p")
+	}
+	ppos := p - 1
+	len := uint16(d.LenCardDecks[ppos])
+	var offset uint16 = 0
+	for i := uint8(0); i < ppos; i++ {
+		offset += uint16(d.LenCardDecks[i])
+	}
+
+	return d.CardsInCirculation[offset : offset+len], nil
 }
 
 // Encode encodes app data onto an io.Writer.
