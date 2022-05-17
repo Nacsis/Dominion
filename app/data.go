@@ -1,13 +1,14 @@
 package app
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 	"io"
+
+	"github.com/pkg/errors"
 
 	"perun.network/go-perun/channel"
 )
 
-/*
 const (
 	NumActionCardsInGame uint8  = 10
 	NumBaseCards         uint8  = 6
@@ -23,28 +24,28 @@ const (
 		uint16(NumSupplyCopper) + uint16(NumSupplySilver) + uint16(NumSupplyGold) +
 		uint16(NumSupplyEstate) + uint16(NumSupplyDuchy) + uint16(NumSupplyProvince)
 )
-*/
 
 type DominionAppData struct {
 	NextActor uint8
-	/*
-		ActionCardsInvolved [NumActionCardsInGame]ActionCardType
-		CardStock           [NumActionCardsInGame + NumBaseCards]uint8
-		LenCardDecks        [NumPlayers]uint8
-		LenCardHand         [NumPlayers]uint8
-		LenCardTrashs       [NumPlayers]uint8
-		LenCardGrave        uint8
-		CardsInCirculation  [NumMaxCirculation]uint8
-		// NumAllCards         uint8
-		// AllCards    [256]Card*/
-
+	// properties of selected Action Cards (immutable)
+	ActionCardsInvolved [NumActionCardsInGame]ActionCardType
+	// num cards left in stock:
+	//   [0 : NumActionCardsInGame]: action cards
+	//   [NumActionCards : end]: base cards
+	CardStock [NumActionCardsInGame + NumBaseCards]uint8
+	// offsets for card assignment
+	LenCardDecks  [NumPlayers]uint8
+	LenCardHand   [NumPlayers]uint8
+	LenCardTrashs [NumPlayers]uint8
+	LenCardGrave  uint8 // burned cards
+	// cards in circulation (owner + position derived from offsets/lengths above)
+	CardsInCirculation [NumMaxCirculation]int8 // (>0): pos in ActionCardsInvolved+1, (0): unknown/empty, (<0): base cards
 }
 
-/*
-// TODO design an interface instead of CardName?
-func (d *DominionAppData) getDeck(p uint8) ([]CardName, error) {
+// get the deck for player by id (enumerated starting at player 1)
+func (d *DominionAppData) getDeck(p uint8) ([]int8, error) {
 	if p == 0 || p > NumPlayers {
-		return nil, fmt.Errorf("Invalid player p")
+		return nil, fmt.Errorf("invalid player p")
 	}
 	ppos := p - 1
 	len := uint16(d.LenCardDecks[ppos])
@@ -54,7 +55,7 @@ func (d *DominionAppData) getDeck(p uint8) ([]CardName, error) {
 	}
 
 	return d.CardsInCirculation[offset : offset+len], nil
-}*/
+}
 
 // Encode encodes app data onto an io.Writer.
 func (d *DominionAppData) Encode(w io.Writer) error {
