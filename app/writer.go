@@ -1,8 +1,7 @@
-package util
+package app
 
 import (
 	"io"
-	"perun.network/perun-examples/app-channel/app/util/port"
 )
 
 func WriteUInt8(w io.Writer, v uint8) error {
@@ -10,7 +9,7 @@ func WriteUInt8(w io.Writer, v uint8) error {
 	return err
 }
 
-func Write(w io.Writer, o port.Writeable) error {
+func Write(w io.Writer, o Writeable) error {
 	_, err := w.Write(o.ToByte())
 	return err
 }

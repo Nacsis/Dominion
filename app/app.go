@@ -17,10 +17,6 @@ package app
 import (
 	"fmt"
 	"io"
-	"log"
-	"perun.network/perun-examples/app-channel/app/game"
-	"perun.network/perun-examples/app-channel/app/util"
-
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/wallet"
 )
@@ -48,9 +44,9 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 	d := DominionAppData{}
 
 	var err error
-	d.NextActor, err = util.ReadUInt8(r)
+	d.NextActor, err = ReadUInt8(r)
 	for i := 0; i < NumPlayers; i++ {
-		d.CardDecks[i], err = util.ReadDeck(r)
+		d.CardDecks[i], err = ReadDeck(r)
 	}
 	return &d, err
 }
@@ -58,11 +54,17 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 // ValidTransition is called whenever the channel state transitions.
 // required for StateApp - interface
 func (a *DominionApp) ValidTransition(params *channel.Params, from, to *channel.State, idx channel.Index) error {
-	fromData, ok := from.Data.(*DominionAppData)
-	log.Println(fromData)
-	if !ok {
-		panic(fmt.Sprintf("from state: invalid data type: %T", from.Data))
+
+	err := channel.AssetsAssertEqual(from.Assets, to.Assets)
+	if err != nil {
+		return fmt.Errorf("Invalid assets: %v", err)
 	}
+
+	fromData := ValidStateFormat(from)
+	toData := ValidStateFormat(to)
+
+	ValidActorInformation(fromData.NextActor, toData.NextActor, params.Parts, idx)
+
 	return nil
 }
 
@@ -71,18 +73,23 @@ func (a *DominionApp) ValidTransition(params *channel.Params, from, to *channel.
 // correct channel ID and valid initial allocation.
 // required for StateApp - interface
 func (a *DominionApp) ValidInit(p *channel.Params, s *channel.State) error {
-	appData, ok := s.Data.(*DominionAppData)
-	if !ok {
-		return fmt.Errorf("invalid data type: %T", s.Data)
+
+	ValidWalletLen(p.Parts)
+
+	appData := ValidStateFormat(s)
+
+	if s.IsFinal {
+		return fmt.Errorf("must not be final")
 	}
-	log.Println(appData)
+
+	NextActorIsInRange(appData.NextActor)
 	return nil
 }
 
 func (a *DominionApp) InitData(firstActor channel.Index) *DominionAppData {
-	var decks [NumPlayers]game.Deck
+	var decks [NumPlayers]Deck
 	for i := 0; i < NumPlayers; i++ {
-		decks[i] = game.NewInitialDeck()
+		decks[i] = NewInitialDeck()
 	}
 	return &DominionAppData{
 		NextActor: uint8(firstActor),
@@ -99,7 +106,7 @@ func (a *DominionApp) SwitchActor(s *channel.State, actorIdx channel.Index) erro
 	d.switchActor(actorIdx)
 
 	s.IsFinal = true
-	s.Balances = game.ComputeFinalBalances(s.Balances)
+	s.Balances = ComputeFinalBalances(s.Balances)
 
 	return nil
 }

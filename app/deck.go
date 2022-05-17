@@ -1,4 +1,4 @@
-package game
+package app
 
 const (
 	InitialDeckSize     = 8
