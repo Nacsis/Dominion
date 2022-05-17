@@ -1,15 +1,13 @@
 package app
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 	"io"
 
-	"github.com/pkg/errors"
 	"perun.network/go-perun/channel"
-
-	perunio "perun.network/go-perun/pkg/io"
 )
 
+/*
 const (
 	NumActionCardsInGame uint8  = 10
 	NumBaseCards         uint8  = 6
@@ -25,23 +23,26 @@ const (
 		uint16(NumSupplyCopper) + uint16(NumSupplySilver) + uint16(NumSupplyGold) +
 		uint16(NumSupplyEstate) + uint16(NumSupplyDuchy) + uint16(NumSupplyProvince)
 )
+*/
 
-type Data struct {
-	NextActor           uint8
-	ActionCardsInvolved [NumActionCardsInGame]ActionCardType
-	CardStock           [NumActionCardsInGame + NumBaseCards]uint8
-	LenCardDecks        [NumPlayers]uint8
-	LenCardHand         [NumPlayers]uint8
-	LenCardTrashs       [NumPlayers]uint8
-	LenCardGrave        uint8
-	CardsInCirculation  [NumMaxCirculation]CardName // alternative approach: pos in ActionCardsInvolved
-	// NumAllCards         uint8
-	// AllCards    [256]Card
-	perunio.Encoder
+type DominionAppData struct {
+	NextActor uint8
+	/*
+		ActionCardsInvolved [NumActionCardsInGame]ActionCardType
+		CardStock           [NumActionCardsInGame + NumBaseCards]uint8
+		LenCardDecks        [NumPlayers]uint8
+		LenCardHand         [NumPlayers]uint8
+		LenCardTrashs       [NumPlayers]uint8
+		LenCardGrave        uint8
+		CardsInCirculation  [NumMaxCirculation]uint8
+		// NumAllCards         uint8
+		// AllCards    [256]Card*/
+
 }
 
+/*
 // TODO design an interface instead of CardName?
-func (d *Data) getDeck(p uint8) ([]CardName, error) {
+func (d *DominionAppData) getDeck(p uint8) ([]CardName, error) {
 	if p == 0 || p > NumPlayers {
 		return nil, fmt.Errorf("Invalid player p")
 	}
@@ -53,33 +54,45 @@ func (d *Data) getDeck(p uint8) ([]CardName, error) {
 	}
 
 	return d.CardsInCirculation[offset : offset+len], nil
-}
+}*/
 
 // Encode encodes app data onto an io.Writer.
-func (d *Data) Encode(w io.Writer) error {
+func (d *DominionAppData) Encode(w io.Writer) error {
+
 	err := writeUInt8(w, d.NextActor)
 	if err != nil {
 		return errors.WithMessage(err, "writing actor")
 	}
-	err = writeUInt8(w, d.NumAllCards)
-	if err != nil {
-		return errors.WithMessage(err, "writing NumAllCards")
-	}
-	err = writeCards(w, d.AllCards)
-	return errors.WithMessage(err, "writing grid")
+	/*
+		err = writeUInt8(w, d.NumAllCards)
+		if err != nil {
+			return errors.WithMessage(err, "writing NumAllCards")
+		}
+		err = writeCards(w, d.AllCards)
+		return errors.WithMessage(err, "writing grid")*/
+	return nil
 }
 
 // Clone returns a deep copy of the app data.
-func (d *Data) Clone() channel.Data {
+func (d *DominionAppData) Clone() channel.Data {
 	_d := *d
 	return &_d
 }
 
-func CalcNextActor(actor uint8) uint8 {
-	return (actor + 1) % numParts
+func (d *DominionAppData) Set(actorIdx channel.Index) {
+
+	if d.NextActor != uint8safe(uint16(actorIdx)) {
+		panic("invalid actor")
+	}
+	d.NextActor += +1
 }
 
-func (d *Data) AddCard(c Card) {
+/*
+func CalcNextActor(actor uint8) uint8 {
+	return (actor + 1) % numParts
+}*/
+/*
+func (d *DominionAppData) AddCard(c Card) {
 	d.AllCards[d.NumAllCards] = c
 	d.NumAllCards += 1
-}
+}*/

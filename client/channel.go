@@ -2,15 +2,18 @@ package client
 
 import (
 	"context"
+	"fmt"
+	"perun.network/go-perun/channel"
 	"perun.network/go-perun/client"
+	"perun.network/perun-examples/app-channel/app"
 )
 
-// DominionChannel is a wrapper for a Perun channel for the Tic-tac-toe app use case.
+// DominionChannel is a wrapper for a Perun channel for the Dominion app use case.
 type DominionChannel struct {
 	ch *client.Channel
 }
 
-// newDominionChannel creates a new tic-tac-toe app channel.
+// newDominionChannel creates a new Dominion app channel.
 func newDominionChannel(ch *client.Channel) *DominionChannel {
 	return &DominionChannel{ch: ch}
 }
@@ -28,5 +31,20 @@ func (g *DominionChannel) Settle() {
 	err = g.ch.Close()
 	if err != nil {
 		return
+	}
+}
+
+// SwitchActor switch the current actor and ends the game
+func (g *DominionChannel) SwitchActor() {
+	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+		dominionApp, ok := state.App.(*app.DominionApp)
+		if !ok {
+			return fmt.Errorf("invalid app type: %T", dominionApp)
+		}
+
+		return dominionApp.SwitchActor(state, g.ch.Idx())
+	})
+	if err != nil {
+		panic(err) // We panic on error to keep the code simple.
 	}
 }

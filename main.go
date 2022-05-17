@@ -54,24 +54,20 @@ func main() {
 	l := newBalanceLogger(chainURL)
 	l.LogBalances(alice, bob)
 
-	// Open app channel and play.
+	// Open dominionApp channel and play.
 	log.Println("Opening channel.")
 	appAlice := alice.OpenAppChannel(bob.WireAddress())
 	appBob := bob.AcceptedChannel()
+	log.Println("Channel Open")
 
-	d := app.Data{}
-	for i := uint8(0); i < 10; i++ {
-		app.NewCopper(&d)
-	}
-	/*
-		err := d.Encode(&dominionApp.Printer{})
-		if err != nil {
-			return
-		}*/
+	// Just a simple Actor switch
+	appAlice.SwitchActor()
+	log.Println("Actor switch performed")
 
 	// Payout.
 	appAlice.Settle()
 	appBob.Settle()
+	log.Println("Settled")
 
 	// Print balances after transactions.
 	l.LogBalances(alice, bob)

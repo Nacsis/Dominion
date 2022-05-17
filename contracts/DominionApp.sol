@@ -19,19 +19,8 @@ pragma experimental ABIEncoderV2;
 
 import "./perun-eth-contracts/contracts/App.sol";
 
-/**
- * @notice TicTacToeApp is a channel app for playing tic tac toe.
- * The data is encoded as follows:
- * - data[0]: The index of the next actor.
- * - data[i], i in [1,10]: The value of field i. 0 means no tick, 1 means tick by player 1, 2 means tick by player 2.
- */
 contract DominionApp is App {
-    uint8 constant actorDataIndex = 0;
-    uint8 constant actorDataLength = 1;
-    uint8 constant appDataLength = 1; // Actor index + grid.
-    uint8 constant numParts = 2;
-    uint8 constant firstPlayer = 1;
-    uint8 constant secondPlayer = 2;
+
 
     /**
      * @notice ValidTransition checks if there was a valid transition between two states.

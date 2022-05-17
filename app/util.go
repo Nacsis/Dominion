@@ -16,17 +16,8 @@ package app
 
 import (
 	"io"
-	"math/big"
-
 	"perun.network/go-perun/channel"
 )
-
-const numParts = 2
-
-func (d Data) CheckFinal() (isFinal bool, winner *channel.Index) {
-
-	return false, nil
-}
 
 func uint8safe(a uint16) uint8 {
 	b := uint8(a)
@@ -47,23 +38,6 @@ func writeUInt8(w io.Writer, v uint8) error {
 	return err
 }
 
-func readUInt8Array(r io.Reader, n int) ([]uint8, error) {
-	buf := make([]byte, n)
-	_, err := io.ReadFull(r, buf)
-	return buf, err
-}
-
-func writeUInt8Array(w io.Writer, v []uint8) error {
-	_, err := w.Write(v)
-	return err
-}
-
-func computeFinalBalances(bals channel.Balances, winner channel.Index) channel.Balances {
-	loser := 1 - winner
-	finalBals := bals.Clone()
-	for i := range finalBals {
-		finalBals[i][winner] = new(big.Int).Add(bals[i][0], bals[i][1])
-		finalBals[i][loser] = big.NewInt(0)
-	}
-	return finalBals
+func computeFinalBalances(bals channel.Balances) channel.Balances {
+	return bals.Clone()
 }
