@@ -47,6 +47,43 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 
 	var err error
 	d.NextActor, err = readUInt8(r)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := uint8(0); i < (NumActionCardsInGame); i++ {
+		d.ActionCardsInvolved[i], err = readActionCard(r)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	for i := uint8(0); i < NumPlayers; i++ {
+		d.LenCardDecks[i], err = readUInt8(r)
+		if err != nil {
+			return nil, err
+		}
+		d.LenCardHand[i], err = readUInt8(r)
+		if err != nil {
+			return nil, err
+		}
+		d.LenCardTrashs[i], err = readUInt8(r)
+		if err != nil {
+			return nil, err
+		}
+	}
+	d.LenCardGrave, err = readUInt8(r)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := uint16(0); i < NumMaxCirculation; i++ {
+		d.CardsInCirculation[i], err = readInt8(r)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &d, err
 }
 
@@ -72,6 +109,16 @@ func (a *DominionApp) ValidInit(p *channel.Params, s *channel.State) error {
 func (a *DominionApp) InitData(firstActor channel.Index) *DominionAppData {
 	return &DominionAppData{
 		NextActor: uint8(firstActor),
+		CardStock: [16]uint8{
+			10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+			// 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // TODO replace with above when Cards implemented
+			NumSupplyProvince,
+			NumSupplyDuchy,
+			NumSupplyEstate,
+			NumSupplyGold,
+			NumSupplySilver,
+			NumSupplyCopper,
+		},
 	}
 }
 

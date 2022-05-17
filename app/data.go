@@ -64,13 +64,40 @@ func (d *DominionAppData) Encode(w io.Writer) error {
 	if err != nil {
 		return errors.WithMessage(err, "writing actor")
 	}
-	/*
-		err = writeUInt8(w, d.NumAllCards)
+
+	for _, v := range d.ActionCardsInvolved {
+		err = writeActionCard(w, v)
 		if err != nil {
-			return errors.WithMessage(err, "writing NumAllCards")
+			return errors.WithMessage(err, "writing action card type")
 		}
-		err = writeCards(w, d.AllCards)
-		return errors.WithMessage(err, "writing grid")*/
+	}
+
+	for i := 0; i < int(NumPlayers); i++ {
+		err = writeUInt8(w, d.LenCardDecks[i])
+		if err != nil {
+			return errors.WithMessage(err, "writing LenCardDecks")
+		}
+		err = writeUInt8(w, d.LenCardHand[i])
+		if err != nil {
+			return errors.WithMessage(err, "writing LenCardHand")
+		}
+		err = writeUInt8(w, d.LenCardTrashs[i])
+		if err != nil {
+			return errors.WithMessage(err, "writing LenCardTrashs")
+		}
+	}
+	err = writeUInt8(w, d.LenCardGrave)
+	if err != nil {
+		return errors.WithMessage(err, "writing LenCardGrave")
+	}
+
+	for _, v := range d.CardsInCirculation {
+		err = writeInt8(w, v)
+		if err != nil {
+			return errors.WithMessage(err, "writing CardsInCirculation")
+		}
+	}
+
 	return nil
 }
 
