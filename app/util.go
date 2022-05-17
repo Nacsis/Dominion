@@ -23,7 +23,7 @@ import (
 
 const numParts = 2
 
-func (d AppData) CheckFinal() (isFinal bool, winner *channel.Index) {
+func (d Data) CheckFinal() (isFinal bool, winner *channel.Index) {
 
 	return false, nil
 }

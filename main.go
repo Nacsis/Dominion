@@ -59,15 +59,15 @@ func main() {
 	appAlice := alice.OpenAppChannel(bob.WireAddress())
 	appBob := bob.AcceptedChannel()
 
-	d := app.AppData{}
+	d := app.Data{}
 	for i := uint8(0); i < 10; i++ {
 		app.NewCopper(&d)
 	}
-
-	err := d.Encode(&app.Printer{})
-	if err != nil {
-		return
-	}
+	/*
+		err := d.Encode(&dominionApp.Printer{})
+		if err != nil {
+			return
+		}*/
 
 	// Payout.
 	appAlice.Settle()

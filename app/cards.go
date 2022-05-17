@@ -44,7 +44,7 @@ type Card struct {
 
 //#### Card constructors ####
 
-func NewCopper(d *AppData) {
+func NewCopper(d *Data) {
 	c := Card{
 		owner:          Unowned,
 		cost:           0,

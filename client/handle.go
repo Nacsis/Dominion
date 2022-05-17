@@ -74,7 +74,7 @@ func (c *AppClient) HandleProposal(p client.ChannelProposal, r *client.ProposalR
 	// Start the on-chain event watcher. It automatically handles disputes.
 	c.startWatching(ch)
 
-	c.channels <- newTicTacToeChannel(ch)
+	c.channels <- newDominionChannel(ch)
 }
 
 // HandleUpdate is the callback for incoming channel updates.

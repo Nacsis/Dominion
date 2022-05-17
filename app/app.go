@@ -38,16 +38,21 @@ func (a *DominionApp) Def() wallet.Address {
 	return a.Addr
 }
 
-func (a *DominionApp) InitData(firstActor channel.Index) *AppData {
-	return &AppData{
+func (a *DominionApp) InitData(firstActor channel.Index) *Data {
+	return &Data{
 		NextActor: uint8(firstActor),
 	}
 }
 
+// DecodeData decodes data specific to this application. This has to be
+// defined on an application-level because every app can have completely
+// different data; during decoding the application needs to be known to
+// know how to decode the data.
+
 // DecodeData decodes the channel data.
 // Habe return type von (channel.Data, error)  abgeändert, zum testen, da ich nicht weiß wie das mit dem Interface geht
-func (a *DominionApp) DecodeData(r io.Reader) (*AppData, error) {
-	d := AppData{}
+func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
+	d := Data{}
 
 	var err error
 	//Read next actor

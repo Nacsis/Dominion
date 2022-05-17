@@ -11,7 +11,7 @@ func TestData(t *testing.T) {
 	dominionApp := DominionApp{}
 
 	fmt.Printf("Creating AppData\n")
-	data := AppData{}
+	data := Data{}
 	for i := 0; i < 3; i++ {
 		NewCopper(&data)
 	}

@@ -44,7 +44,7 @@ type AppClient struct {
 	currency    channel.Asset    // The currency we expect to get paid in.
 	stake       channel.Bal      // The amount we put at stake.
 	app         *app.DominionApp // The app definition.
-	channels    chan *TicTacToeChannel
+	channels    chan *DominionChannel
 }
 
 // SetupAppClient creates a new app client.
@@ -104,7 +104,7 @@ func SetupAppClient(
 		currency:    &asset,
 		stake:       stake,
 		app:         app,
-		channels:    make(chan *TicTacToeChannel, 1),
+		channels:    make(chan *DominionChannel, 1),
 	}
 
 	channel.RegisterApp(app)
@@ -114,7 +114,7 @@ func SetupAppClient(
 }
 
 // OpenAppChannel opens a new app channel with the specified peer.
-func (c *AppClient) OpenAppChannel(peer wire.Address) *TicTacToeChannel {
+func (c *AppClient) OpenAppChannel(peer wire.Address) *DominionChannel {
 	participants := []wire.Address{c.account, peer}
 
 	// We create an initial allocation which defines the starting balances.
@@ -150,7 +150,7 @@ func (c *AppClient) OpenAppChannel(peer wire.Address) *TicTacToeChannel {
 	// Start the on-chain event watcher. It automatically handles disputes.
 	c.startWatching(ch)
 
-	return newTicTacToeChannel(ch)
+	return newDominionChannel(ch)
 }
 
 // startWatching starts the dispute watcher for the specified channel.
@@ -164,7 +164,7 @@ func (c *AppClient) startWatching(ch *client.Channel) {
 }
 
 // AcceptedChannel returns the next accepted app channel.
-func (c *AppClient) AcceptedChannel() *TicTacToeChannel {
+func (c *AppClient) AcceptedChannel() *DominionChannel {
 	return <-c.channels
 }
 

@@ -67,7 +67,7 @@ func deployContracts(nodeURL string, chainID uint64, privateKey string) (adj, ah
 		panic(err)
 	}
 	// Deploy TicTacToe App.
-	app, tx, _, err := dominionApp.DeployTicTacToeApp(tops, cb)
+	app, tx, _, err := dominionApp.DeployDominionApp(tops, cb)
 	if err != nil {
 		panic(err)
 	}
