@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"perun.network/perun-examples/app-channel/app/game"
+	"perun.network/perun-examples/app-channel/app/util"
 
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/wallet"
@@ -35,7 +37,7 @@ func NewDominionApp(addr wallet.Address) *DominionApp {
 }
 
 // Def returns the app address.
-// required for App - interface
+// required for App - port
 func (a *DominionApp) Def() wallet.Address {
 	return a.Addr
 }
@@ -46,13 +48,21 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 	d := DominionAppData{}
 
 	var err error
-	d.NextActor, err = readUInt8(r)
+	d.NextActor, err = util.ReadUInt8(r)
+	for i := 0; i < NumPlayers; i++ {
+		d.CardDecks[i], err = util.ReadDeck(r)
+	}
 	return &d, err
 }
 
 // ValidTransition is called whenever the channel state transitions.
 // required for StateApp - interface
 func (a *DominionApp) ValidTransition(params *channel.Params, from, to *channel.State, idx channel.Index) error {
+	fromData, ok := from.Data.(*DominionAppData)
+	log.Println(fromData)
+	if !ok {
+		panic(fmt.Sprintf("from state: invalid data type: %T", from.Data))
+	}
 	return nil
 }
 
@@ -70,8 +80,13 @@ func (a *DominionApp) ValidInit(p *channel.Params, s *channel.State) error {
 }
 
 func (a *DominionApp) InitData(firstActor channel.Index) *DominionAppData {
+	var decks [NumPlayers]game.Deck
+	for i := 0; i < NumPlayers; i++ {
+		decks[i] = game.NewInitialDeck()
+	}
 	return &DominionAppData{
 		NextActor: uint8(firstActor),
+		CardDecks: decks,
 	}
 }
 
@@ -81,10 +96,10 @@ func (a *DominionApp) SwitchActor(s *channel.State, actorIdx channel.Index) erro
 		return fmt.Errorf("invalid data type: %T", d)
 	}
 
-	d.Set(actorIdx)
+	d.switchActor(actorIdx)
 
 	s.IsFinal = true
-	s.Balances = computeFinalBalances(s.Balances)
+	s.Balances = game.ComputeFinalBalances(s.Balances)
 
 	return nil
 }
