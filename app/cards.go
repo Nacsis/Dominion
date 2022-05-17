@@ -2,20 +2,11 @@ package app
 
 import "io"
 
-//### Player Constants ###
-type Owner uint8
-
-const (
-	Unowned Owner = iota
-	Player_1
-	Player_2
-)
-
 //### Card Type Constants ###
-type CardType uint8
+type CardGroup uint8
 
 const (
-	UnknownCardType CardType = iota
+	UnknownCardGroup CardGroup = iota
 	ActionCard
 	TreasureCard
 	VictoryCard
@@ -25,22 +16,78 @@ const (
 type CardName uint8
 
 const (
-	UnknownCardName CardType = iota
+	UnknownCardName CardName = iota
 	Copper
 )
 
-type Card struct {
-	owner          Owner
-	cost           uint8
-	group          CardType
-	dActions       uint8
-	dBuys          uint8
-	dMoney         uint8
-	dDraws         uint8
-	dVictoryPoints uint8
-	id             uint8
-	name           CardName
+// TODO define when needed...
+// type CardType interface {
+// 	Name()
+// 	Group()
+// 	Cost()
+// }
+
+type CardTypeBase struct {
+	name  CardName
+	group CardGroup
+	cost  uint
 }
+
+func (c CardTypeBase) Name() CardName {
+	return c.name
+}
+
+func (c CardTypeBase) Group() CardGroup {
+	return c.group
+}
+
+func (c CardTypeBase) Cost() uint {
+	return c.cost
+}
+
+type ActionCardType struct {
+	// composition with CardBase
+	CardTypeBase
+	// specialized properties
+	dActions, dBuys, dMoney, dDraws int8
+}
+
+type TreasureCardType struct {
+	// composition with CardBase
+	CardTypeBase
+	// specialized properties
+	dMoney int8
+}
+
+const (
+	MonValueCopper int8 = 1
+	MonValueSilver int8 = 2
+	MonValueGold   int8 = 3
+	CostsCopper    int8 = 0
+	CostsSilver    int8 = 3
+	CostsGold      int8 = 6
+)
+
+type VictoryCardType struct {
+	// composition with CardBase
+	CardTypeBase
+	// specialized properties
+	dVictoryPoints int8
+}
+
+const VicValueProvince int8 = 6
+
+// type CardType struct {
+// 	cost           uint8
+// 	group          CardGroup
+// 	dActions       uint8
+// 	dBuys          uint8
+// 	dMoney         uint8
+// 	dDraws         uint8
+// 	dVictoryPoints uint8
+// 	id             uint8
+// 	name           CardName
+// }
 
 //#### Card constructors ####
 
