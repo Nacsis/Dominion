@@ -11,9 +11,9 @@ type DominionAppData struct {
 	NextActor uint8
 	/*Commitments [][global.HashSize]byte
 	PreImages   [][global.HashSize]byte*/
-	cards     []Card                // static Card information
+	Cards     []Card                // static Card information
 	CardDecks [util.NumPlayers]Deck // dynamic Card information
-	//cards          map[uuid.UUID]uint8
+	//Cards          map[uuid.UUID]uint8
 }
 
 // Encode encodes app data onto an io.Writer.
@@ -31,8 +31,8 @@ func (d *DominionAppData) Encode(w io.Writer) error {
 		}
 	}
 
-	for i := 0; i < len(d.cards); i++ {
-		err := util.Write(w, &d.cards[i])
+	for i := 0; i < len(d.Cards); i++ {
+		err := util.Write(w, &d.Cards[i])
 		if err != nil {
 			return errors.WithMessage(err, "writing card")
 		}
@@ -54,31 +54,40 @@ func (d *DominionAppData) switchActor(actorIdx channel.Index) {
 	d.NextActor += +1
 }
 
-func (a *DominionAppData) NewInitialDeck() Deck {
-	/*
-		var cards = make([]uuid.UUID, util.InitialDeckSize)
-		var c = NewMoneyCard()
-		for i := 0; i < util.InitialMoneyCards; i++ {
-			c = NewMoneyCard()
-			a.cards[c.id] = c
-			cards[i] = c.id
-		}
-		for i := util.InitialMoneyCards; i < util.InitialMoneyCards+util.InitialVictoryCards; i++ {
-			c = NewVictoryCard()
-			a.cards[c.id] = c
-			cards[i] = c.id
-		}
-	*/
-	return Deck{
-		cardIds:  cards,
-		deckSize: util.InitialDeckSize,
-	}
+func (a *DominionAppData) Init() error {
+	a.CreateInitialCards()
+	a.CreateInitialDecks()
+	return nil
 }
 
-func (a *DominionAppData) cardOf(ids []uint8) []Card {
+func (a *DominionAppData) CreateInitialDecks() error {
+
+	for deckNum := 0; deckNum < util.NumPlayers; deckNum++ {
+		for i := 0; i < util.InitialMoneyCards; i++ {
+			a.CardDecks[deckNum].cards = append(a.CardDecks[deckNum].cards, a.Cards[MoneyCopper])
+		}
+		for i := 0; i < util.InitialVictoryCards; i++ {
+			a.CardDecks[deckNum].cards = append(a.CardDecks[deckNum].cards, a.Cards[VictorySmall])
+		}
+	}
+	return nil
+
+}
+func (a *DominionAppData) CreateInitialCards() error {
+	a.Cards = make([]Card, util.NumCardTypes)
+	a.Cards[MoneyCopper] = NewCardOfType(MoneyCopper)
+	a.Cards[MoneySilver] = NewCardOfType(MoneySilver)
+	a.Cards[MoneyGold] = NewCardOfType(MoneyGold)
+	a.Cards[VictorySmall] = NewCardOfType(VictorySmall)
+	a.Cards[VictoryMid] = NewCardOfType(VictoryMid)
+	a.Cards[VictoryBig] = NewCardOfType(VictoryBig)
+	return nil
+}
+
+func (a *DominionAppData) CardOf(ids []uint8) []Card {
 	var cards []Card
 	for i := 0; i < len(ids); i++ {
-		cards[i] = a.cards[i]
+		cards[i] = a.Cards[i]
 	}
 	return cards
 }

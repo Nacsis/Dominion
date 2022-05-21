@@ -21,11 +21,9 @@ const (
 	VictoryBig
 )
 
-//TODO hier ein kommentieren wenn Wir es benutzen
-/*
 func NewCardOfType(ct CardType) Card {
 	// Money
-	if 0 >= int(ct) && int(ct) < 3 {
+	if 0 <= int(ct) && int(ct) < 3 {
 		return NewMoneyCard(ct)
 	} else {
 		// victory
@@ -58,14 +56,14 @@ func NewVictoryCard(ct CardType) Card {
 	}
 }
 
-func NewCard(m, v uint8) Card {
+func NewCard(m, v uint8, ct CardType) Card {
 	return Card{
 		money:         m,
 		victoryPoints: v,
 		cardType:      ct,
 	}
 }
-*/
+
 func (c *Card) ToByte() []byte {
 	var dataBytes = make([]byte, util.CardSize)
 	dataBytes[0] = byte(c.cardType)
