@@ -9,6 +9,10 @@ const (
 	InitialVictoryCards = InitialDeckSize / 2
 	NumCardTypes        = 16
 
+	// Crypto / Framework
+	HashSize uint8 = 20
+	RNGsize        = 3 * HashSize
+
 	// Treasure Values
 	MonValueCopper uint8 = 1
 	MonValueSilver uint8 = 2
