@@ -11,7 +11,7 @@ const (
 
 	// Crypto / Framework
 	HashSize uint8 = 20
-	RNGsize        = 3 * HashSize
+	RNGsize        = 3*HashSize + 1
 
 	// Treasure Values
 	MonValueCopper uint8 = 1

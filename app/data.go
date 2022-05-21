@@ -10,6 +10,7 @@ import (
 type DominionAppData struct {
 	NextActor uint8
 	CardDecks [util.NumPlayers]Deck // dynamic Card information
+	rng RNG
 }
 
 // Encode encodes app data onto an io.Writer.

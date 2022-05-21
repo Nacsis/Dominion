@@ -24,10 +24,10 @@ type RNG struct {
 
 func (r *RNG) Of(dataBytes []byte) RNG {
 	return RNG{
-		state: 0,
-		a:     nil,
-		b:     nil,
-		hash:  nil,
+		state: State(dataBytes[0]),
+		a:     dataBytes[1:util.HashSize],
+		b:     dataBytes[1+util.HashSize : 1+2*util.HashSize],
+		hash:  dataBytes[1+2*util.HashSize : 1+3*util.HashSize],
 	}
 }
 
@@ -93,8 +93,9 @@ func (r *RNG) Validate(random []byte) error {
 }
 
 func (r *RNG) ToByte() []byte {
-
 	var dataBytes = make([]byte, util.RNGsize)
+
+	dataBytes[0] = byte(r.state)
 
 	if r.state == Released {
 		for i, x := range r.a {
