@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/wallet"
+	"perun.network/perun-examples/app-channel/app/util"
 )
 
 func ValidStateFormat(s *channel.State) *DominionAppData {
@@ -16,7 +17,7 @@ func ValidStateFormat(s *channel.State) *DominionAppData {
 
 func ValidActorInformation(currentActor, nextActor uint8, parts []wallet.Address, idx channel.Index) {
 	// Check actor.
-	if currentActor != Uint8safe(uint16(idx)) {
+	if currentActor != util.Uint8safe(uint16(idx)) {
 		panic(fmt.Errorf("invalid actor: expected %v, got %v", currentActor, idx))
 	}
 
@@ -31,14 +32,14 @@ func ValidActorInformation(currentActor, nextActor uint8, parts []wallet.Address
 
 func ValidWalletLen(parts []wallet.Address) {
 	// Check next actor.
-	if len(parts) != NumPlayers {
+	if len(parts) != util.NumPlayers {
 		panic("invalid number of participants")
 	}
 }
 
 func NextActorIsInRange(nextActor uint8) {
 	// Check next actor.
-	if nextActor >= NumPlayers {
-		panic(fmt.Errorf("invalid next actor: got %d, expected < %d", nextActor, NumPlayers))
+	if nextActor >= util.NumPlayers {
+		panic(fmt.Errorf("invalid next actor: got %d, expected < %d", nextActor, util.NumPlayers))
 	}
 }

@@ -19,6 +19,7 @@ import (
 	"io"
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/wallet"
+	"perun.network/perun-examples/app-channel/app/util"
 )
 
 // DominionApp is a channel app.
@@ -44,10 +45,38 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 	d := DominionAppData{}
 
 	var err error
-	d.NextActor, err = ReadUInt8(r)
-	for i := 0; i < NumPlayers; i++ {
-		d.CardDecks[i], err = ReadDeck(r)
+	var data []byte
+	var deckLength uint8
+
+	d.NextActor, err = util.ReadUInt8(r)
+
+	var decksWithIds [][]byte
+	var cards []Card
+
+	// First read decks with only cardIds instead of cards.
+	// Save them in decksWithIds
+	for deckIndex := 0; deckIndex < util.NumPlayers; deckIndex++ {
+		deckLength, err = util.ReadUInt8(r)
+
+		data, err = util.ReadBytes(r, deckLength)
+		for cardIndex := uint8(0); cardIndex < deckLength; cardIndex++ {
+			decksWithIds[deckIndex][cardIndex] = data[cardIndex]
+		}
 	}
+
+	// Read game cards
+	for i := 0; i < util.NumCardTypes; i++ {
+		data, err = util.ReadBytes(r, util.CardSize)
+		cards[i].Of(data)
+	}
+
+	// Set the game cards in AppData.
+	d.cards = cards
+
+	for i := 0; i < util.NumPlayers; i++ {
+		d.CardDecks[i].cards = d.cardOf(decksWithIds[i])
+	}
+
 	return &d, err
 }
 
@@ -87,9 +116,11 @@ func (a *DominionApp) ValidInit(p *channel.Params, s *channel.State) error {
 }
 
 func (a *DominionApp) InitData(firstActor channel.Index) *DominionAppData {
-	var decks [NumPlayers]Deck
-	for i := 0; i < NumPlayers; i++ {
-		decks[i] = NewInitialDeck()
+	var decks [util.NumPlayers]Deck
+	var ad DominionAppData
+
+	for i := 0; i < util.NumPlayers; i++ {
+		decks[i] = ad.NewInitialDeck()
 	}
 	return &DominionAppData{
 		NextActor: uint8(firstActor),

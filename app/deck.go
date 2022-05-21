@@ -1,48 +1,16 @@
 package app
 
-const (
-	InitialDeckSize     = 8
-	InitialMoneyCards   = InitialDeckSize / 2
-	InitialVictoryCards = InitialDeckSize / 2
-)
-
 type Deck struct {
-	deckSize uint8
-	cards    []Card
-}
-
-func NewInitialDeck() Deck {
-	var cards = make([]Card, InitialDeckSize)
-
-	for i := 0; i < InitialMoneyCards; i++ {
-		cards[i] = NewMoneyCard()
-	}
-	for i := InitialMoneyCards; i < InitialMoneyCards+InitialVictoryCards; i++ {
-		cards[i] = NewVictoryCard()
-	}
-	return Deck{
-		cards:    cards,
-		deckSize: InitialDeckSize,
-	}
+	cards []Card
 }
 
 func (d *Deck) ToByte() []byte {
-	dataBytes := []byte{d.deckSize}
-	for i := 0; i < int(d.deckSize); i++ {
-		dataBytes = append(dataBytes, d.cards[i].ToByte()...)
+	var deckLength = len(d.cards)
+	var dataBytes = make([]byte, deckLength+1)
+	dataBytes[0] = byte(deckLength)
+	for i := 0; i < deckLength; i++ {
+		ct := uint8(d.cards[i].cardType)
+		dataBytes = append(dataBytes, ct)
 	}
 	return dataBytes
-}
-
-func (d *Deck) Of(dataBytes []byte) Deck {
-	var deckSize = dataBytes[0]
-	var cards = make([]Card, deckSize)
-	for i := 0; i < int(deckSize); i++ {
-		var c Card
-		cards[i] = c.Of(dataBytes[1+(i*CardSize) : i*CardSize])
-	}
-	return Deck{
-		deckSize: dataBytes[0],
-		cards:    cards,
-	}
 }
