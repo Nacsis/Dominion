@@ -21,7 +21,7 @@ const (
 	VictoryBig
 )
 
-func NewCardOfType(ct CardType) Card {
+func CardOfType(ct CardType) Card {
 	// Money
 	if 0 <= int(ct) && int(ct) < 3 {
 		return NewMoneyCard(ct)

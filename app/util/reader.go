@@ -10,15 +10,12 @@ func ReadUInt8(r io.Reader) (uint8, error) {
 	return buf[0], err
 }
 
-/*
+// ReadObject Read a Readable object from stream.
+// It is necessary that every object stream starts with its size
 func ReadObject(r io.Reader, o Readable) (Readable, error) {
-	var buf []byte
-	_, err := io.ReadFull(r, buf)
+	length, err := ReadUInt8(r)
+	buf := make([]byte, length)
+	io.ReadFull(r, buf)
 	o.Of(buf)
 	return o, err
-}*/
-func ReadBytes(r io.Reader, length uint8) ([]byte, error) {
-	buf := make([]byte, length)
-	_, err := io.ReadFull(r, buf)
-	return buf, err
 }

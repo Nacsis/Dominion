@@ -17,6 +17,7 @@ package app
 import (
 	"fmt"
 	"io"
+	"log"
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/wallet"
 	"perun.network/perun-examples/app-channel/app/util"
@@ -42,42 +43,16 @@ func (a *DominionApp) Def() wallet.Address {
 // DecodeData decodes the channel data.
 // required for App - interface
 func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
-	d := DominionAppData{}
+	dad := DominionAppData{}
 
 	var err error
-	var data []byte
-	var deckLength uint8
+	dad.NextActor, err = util.ReadUInt8(r)
 
-	d.NextActor, err = util.ReadUInt8(r)
-
-	var decksWithIds [][]byte
-	var cards []Card
-
-	// First read decks with only cardIds instead of Cards.
-	// Save them in decksWithIds
 	for deckIndex := 0; deckIndex < util.NumPlayers; deckIndex++ {
-		deckLength, err = util.ReadUInt8(r)
-
-		data, err = util.ReadBytes(r, deckLength)
-		for cardIndex := uint8(0); cardIndex < deckLength; cardIndex++ {
-			decksWithIds[deckIndex][cardIndex] = data[cardIndex]
-		}
+		util.ReadObject(r, &dad.CardDecks[deckIndex])
 	}
 
-	// Read game Cards
-	for i := 0; i < util.NumCardTypes; i++ {
-		data, err = util.ReadBytes(r, util.CardSize)
-		cards[i].Of(data)
-	}
-
-	// Set the game Cards in AppData.
-	d.Cards = cards
-
-	for i := 0; i < util.NumPlayers; i++ {
-		d.CardDecks[i].cards = d.CardOf(decksWithIds[i])
-	}
-
-	return &d, err
+	return &dad, err
 }
 
 // ValidTransition is called whenever the channel state transitions.
@@ -106,6 +81,7 @@ func (a *DominionApp) ValidInit(p *channel.Params, s *channel.State) error {
 	ValidWalletLen(p.Parts)
 
 	appData := ValidStateFormat(s)
+	log.Println(appData)
 
 	if s.IsFinal {
 		return fmt.Errorf("must not be final")
@@ -117,9 +93,7 @@ func (a *DominionApp) ValidInit(p *channel.Params, s *channel.State) error {
 
 func (a *DominionApp) InitData(firstActor channel.Index) *DominionAppData {
 	var ad DominionAppData
-	ad.Init()
-	ad.NextActor = uint8(firstActor)
-
+	ad.Init(firstActor)
 	return &ad
 }
 
