@@ -20,7 +20,9 @@ pragma experimental ABIEncoderV2;
 import "./perun-eth-contracts/contracts/App.sol";
 
 contract DominionApp is App {
-
+    uint8 constant actorDataIndex = 0;
+    uint8 constant actorDataLength = 1;
+    uint8 constant numParts = 2;
 
     /**
      * @notice ValidTransition checks if there was a valid transition between two states.
@@ -36,12 +38,11 @@ contract DominionApp is App {
         uint256 signerIdx)
     external pure override
     {
-        /*
+
         require(params.participants.length == numParts, "number of participants");
 
         uint8 actorIndex = uint8(from.appData[actorDataIndex]);
-        require(to.appData.length == appDataLength, "data length");
         require(actorIndex == signerIdx, "actor not signer");
-        require((actorIndex + 1) % numParts == uint8(to.appData[actorDataIndex]), "next actor");*/
+        require((actorIndex + 1) % numParts == uint8(to.appData[actorDataIndex]), "next actor");
     }
 }
