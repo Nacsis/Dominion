@@ -3,113 +3,111 @@ package app
 import (
 	"bytes"
 	"fmt"
-	"github.com/pkg/errors"
 	"perun.network/perun-examples/app-channel/app/util"
 	"perun.network/perun-examples/app-channel/global"
 )
 
 type State uint8
 
-const (
-	Initial State = iota
-	Committed
-	Touched
-	Released
-)
-
 type RNG struct {
-	state      State
-	a, b, hash []byte
+	imageA, preImageB, preImageA []byte
 }
 
-func (r *RNG) Of(dataBytes []byte) RNG {
-	return RNG{
-		state: State(dataBytes[0]),
-		a:     dataBytes[1:util.HashSize],
-		b:     dataBytes[1+util.HashSize : 1+2*util.HashSize],
-		hash:  dataBytes[1+2*util.HashSize : 1+3*util.HashSize],
+func (r *RNG) Of(dataBytes []byte) {
+	var size = dataBytes[0]
+	if size == 0 {
+		return
+	}
+	if size >= util.HashSize {
+		r.imageA = dataBytes[1 : 1+util.HashSize] // 1 - 20
+	}
+	if size >= 2*util.HashSize {
+		r.imageA = dataBytes[1+util.HashSize : 1+2*util.HashSize] // 21 - 40
+	}
+	if size >= 3*util.HashSize {
+		r.imageA = dataBytes[1+2*util.HashSize : 1+3*util.HashSize] //40 - 60
 	}
 }
+func (r *RNG) ToByte() []byte {
 
-func (r *RNG) Commit() error {
-	if r.state != Initial {
-		return fmt.Errorf("RNG.commit must be called from state=Ready")
+	// if imageA is not set end with rng length 0
+	var dataBytes = make([]byte, 1)
+
+	// TODO Muss ich das setzen oder es es automatisch drin?
+	dataBytes[0] = 0
+
+	if r.imageA != nil && uint8(len(r.imageA)) == util.HashSize {
+		dataBytes = append(dataBytes, r.imageA...)
 	}
-	r.hash, r.a = global.HashKeyPair(util.HashSize)
-	r.state = Committed
+	if r.preImageB != nil && uint8(len(r.preImageB)) == util.HashSize {
+		dataBytes = append(dataBytes, r.preImageB...)
+	}
+	if r.preImageA != nil && uint8(len(r.preImageA)) == util.HashSize {
+		dataBytes = append(dataBytes, r.preImageA...)
+	}
+
+	// To define how lang the arrays a
+	dataBytes[0] = byte(len(dataBytes) - 1)
+	return dataBytes
+}
+
+// Commit is the first function to call when the rng should start.
+// First Commit to a imageA
+func (r *RNG) Commit(preImage []byte) error {
+
+	// ensure clean state
+	r.preImageB = nil
+	r.preImageA = nil
+	r.imageA = nil
+
+	r.imageA = global.Hash(preImage)
+
 	return nil
 }
 
+// Touch is the second step to execute for rng.
+// A committed imageA is necessary.
 func (r *RNG) Touch() error {
-	if r.state != Committed {
+	if r.imageA == nil {
 		return fmt.Errorf("RNG.Touch must be called from state=Comitted")
 	}
-	r.b = global.RandomBytes(util.HashSize)
-	r.state = Touched
+	r.preImageB = global.RandomBytes(util.HashSize)
 	return nil
 }
 
-func (r *RNG) Release() error {
-	if r.state != Touched {
-		return fmt.Errorf("RNG.release must be called from state=Touched")
+func (r *RNG) Release(preImageA []byte) error {
+	if r.preImageB != nil || !global.IsValid(r.imageA, preImageA) {
+		return fmt.Errorf("RNG.Release must be called from state=Touched")
 	}
-
-	r.state = Released
+	r.preImageA = preImageA
 	return nil
 }
 
+// Value return joined random value
 func (r *RNG) Value() ([]byte, error) {
 	var random []byte
 
-	if r.state != Released {
+	if r.preImageB != nil || !global.IsValid(r.imageA, r.preImageA) {
 		return []byte{}, fmt.Errorf("RNG.random must be called from state=Released")
 	}
 
-	random = global.Xor(r.a, r.b)
+	random = global.Xor(r.preImageA, r.preImageB)
 
 	return random, r.Validate(random)
 }
 
 func (r *RNG) Validate(random []byte) error {
-	var err error
 
-	// state
-	if r.state != Released {
-		err = errors.New("RNG.validate must be called from state=Released")
-	}
-
-	// h = hash(a)
-	err = global.Valid(r.hash, r.a)
+	// h = hash(imageA)
+	err := global.Valid(r.preImageA, r.preImageA)
 	if err == nil {
 		return err
 	}
 
-	// random = a ^ b
-	if !bytes.Equal(random, global.Xor(r.a, r.b)) {
-		return fmt.Errorf("Commitment Error: random != a xor b")
+	// random = imageA ^ preImageB
+	if !bytes.Equal(random, global.Xor(r.preImageA, r.preImageB)) {
+		return fmt.Errorf("Commitment Error: random != imageA xor preImageB")
 	}
 
 	return nil
-}
-
-func (r *RNG) ToByte() []byte {
-	var dataBytes = make([]byte, util.RNGsize)
-
-	dataBytes[0] = byte(r.state)
-
-	if r.state == Released {
-		for i, x := range r.a {
-			dataBytes[i] = x
-		}
-	}
-
-	for i, x := range r.b {
-		dataBytes[util.HashSize+uint8(i)] = x
-	}
-
-	for i, x := range r.hash {
-		dataBytes[2*util.HashSize+uint8(i)] = x
-	}
-
-	return dataBytes
 }

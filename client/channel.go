@@ -48,3 +48,57 @@ func (g *DominionChannel) SwitchActor() {
 		panic(err) // We panic on error to keep the code simple.
 	}
 }
+func (g *DominionChannel) CommitRng(preImage []byte) {
+	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+		dominionApp, ok := state.App.(*app.DominionApp)
+		if !ok {
+			return fmt.Errorf("invalid app type: %T", dominionApp)
+		}
+
+		return dominionApp.CommitRng(state, g.ch.Idx(), preImage)
+	})
+	if err != nil {
+		panic(err) // We panic on error to keep the code simple.
+	}
+}
+func (g *DominionChannel) TouchRng() {
+	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+		dominionApp, ok := state.App.(*app.DominionApp)
+		if !ok {
+			return fmt.Errorf("invalid app type: %T", dominionApp)
+		}
+
+		return dominionApp.TouchRng(state, g.ch.Idx())
+	})
+	if err != nil {
+		panic(err) // We panic on error to keep the code simple.
+	}
+}
+
+func (g *DominionChannel) Release(preImage []byte) {
+	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+		dominionApp, ok := state.App.(*app.DominionApp)
+		if !ok {
+			return fmt.Errorf("invalid app type: %T", dominionApp)
+		}
+
+		return dominionApp.ReleaseRng(state, g.ch.Idx(), preImage)
+	})
+	if err != nil {
+		panic(err) // We panic on error to keep the code simple.
+	}
+}
+
+func (g *DominionChannel) Draw() {
+	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+		dominionApp, ok := state.App.(*app.DominionApp)
+		if !ok {
+			return fmt.Errorf("invalid app type: %T", dominionApp)
+		}
+
+		return dominionApp.Draw(state, g.ch.Idx())
+	})
+	if err != nil {
+		panic(err) // We panic on error to keep the code simple.
+	}
+}

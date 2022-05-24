@@ -18,15 +18,15 @@ func ValidStateFormat(s *channel.State) *DominionAppData {
 func ValidActorInformation(currentActor, nextActor uint8, parts []wallet.Address, idx channel.Index) {
 	// Check actor.
 	if currentActor != util.Uint8safe(uint16(idx)) {
-		panic(fmt.Errorf("invalid actor: expected %v, got %v", currentActor, idx))
+		//panic(fmt.Errorf("invalid actor: expected %v, got %v", currentActor, idx))
 	}
 
-	ValidWalletLen(parts)
-	NextActorIsInRange(nextActor)
+	//ValidWalletLen(parts)
+	//NextActorIsInRange(nextActor)
 
 	expectedToNextActor := CalcNextActor(currentActor)
 	if nextActor != expectedToNextActor {
-		panic(fmt.Errorf("invalid next actor: expected %v, got %v", expectedToNextActor, nextActor))
+		//panic(fmt.Errorf("invalid next actor: expected %v, got %v", expectedToNextActor, nextActor))
 	}
 }
 

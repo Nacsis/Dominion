@@ -1,5 +1,11 @@
 package app
 
+import (
+	"encoding/binary"
+	"log"
+	"math/rand"
+)
+
 type Pile struct {
 	cards []Card
 }
@@ -20,4 +26,30 @@ func (p *Pile) Of(dataBytes []byte) {
 	for i := 0; i < len(dataBytes); i++ {
 		p.cards[i] = CardOfType(CardType(dataBytes[i]))
 	}
+}
+func (p *Pile) Size() int {
+	return len(p.cards)
+}
+func (p *Pile) draw(seed []byte) Card {
+	log.Println(seed)
+	seedAsInt := binary.BigEndian.Uint64(seed)
+	rand.Seed(int64(seedAsInt))
+	index := rand.Intn(len(p.cards))
+	card := p.cards[index]
+	p.cards[index] = Card{}
+	p.resizeCards()
+	return card
+}
+func (p *Pile) resizeCards() {
+	cards := make([]Card, 1)
+	for i := 0; i < len(p.cards); i++ {
+		if (p.cards[i] != Card{}) {
+			cards = append(cards, []Card{p.cards[i]}...)
+		}
+	}
+	p.cards = cards
+}
+
+func (p *Pile) add(card Card) {
+	p.cards = append(p.cards, []Card{card}...)
 }

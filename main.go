@@ -20,7 +20,9 @@ import (
 	ethwallet "perun.network/go-perun/backend/ethereum/wallet"
 	"perun.network/go-perun/wire"
 	"perun.network/perun-examples/app-channel/app"
+	"perun.network/perun-examples/app-channel/app/util"
 	"perun.network/perun-examples/app-channel/client"
+	"perun.network/perun-examples/app-channel/global"
 )
 
 const (
@@ -61,6 +63,16 @@ func main() {
 	log.Println("Channel Open")
 
 	// Just a simple Actor switch
+	var alicePreimage = global.RandomBytes(util.HashSize)
+	log.Println(alicePreimage)
+	appAlice.CommitRng(alicePreimage)
+	log.Println(appAlice)
+	appBob.TouchRng()
+
+	appAlice.Release(alicePreimage)
+
+	appAlice.Draw()
+
 	appAlice.SwitchActor()
 	log.Println("Actor switch performed")
 

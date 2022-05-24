@@ -1,6 +1,8 @@
 package app
 
-import "log"
+import (
+	"log"
+)
 
 type Deck struct {
 	mainCardPile Pile
@@ -31,4 +33,9 @@ func (d *Deck) Of(dataBytes []byte) {
 	log.Println(handCardSize)
 	log.Println(dataBytes[handCardSize : +handCardSize+mainCardPileSize])
 	d.handCards.Of(dataBytes[handCardSize : +handCardSize+mainCardPileSize])
+}
+
+func (d *Deck) draw(seed []byte) {
+	card := d.mainCardPile.draw(seed)
+	d.handCards.add(card)
 }

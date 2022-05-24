@@ -2,7 +2,7 @@
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// You may obtain imageA copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
@@ -23,7 +23,7 @@ import (
 	"perun.network/perun-examples/app-channel/app/util"
 )
 
-// DominionApp is a channel app.
+// DominionApp is imageA channel app.
 type DominionApp struct {
 	Addr wallet.Address
 }
@@ -46,11 +46,15 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 	dad := DominionAppData{}
 
 	var err error
+	// actor
 	dad.NextActor, err = util.ReadUInt8(r)
 
+	// decks
 	for deckIndex := 0; deckIndex < util.NumPlayers; deckIndex++ {
 		util.ReadObject(r, &dad.CardDecks[deckIndex])
 	}
+	// rng
+	util.ReadObject(r, &dad.rng)
 
 	return &dad, err
 }
@@ -72,7 +76,7 @@ func (a *DominionApp) ValidTransition(params *channel.Params, from, to *channel.
 	return nil
 }
 
-// ValidInit should perform app-specific checks for a valid initial state.
+// ValidInit should perform app-specific checks for imageA valid initial state.
 // The framework guarantees to only pass initial states with version == 0,
 // correct channel ID and valid initial allocation.
 // required for StateApp - interface
@@ -108,5 +112,44 @@ func (a *DominionApp) SwitchActor(s *channel.State, actorIdx channel.Index) erro
 	s.IsFinal = true
 	s.Balances = ComputeFinalBalances(s.Balances)
 
+	return nil
+}
+func (a *DominionApp) CommitRng(s *channel.State, actorIdx channel.Index, image []byte) error {
+	d, ok := s.Data.(*DominionAppData)
+	if !ok {
+		return fmt.Errorf("invalid data type: %T", d)
+	}
+
+	d.CommitRng(actorIdx, image)
+
+	return nil
+}
+func (a *DominionApp) TouchRng(s *channel.State, actorIdx channel.Index) error {
+	d, ok := s.Data.(*DominionAppData)
+	if !ok {
+		return fmt.Errorf("invalid data type: %T", d)
+	}
+
+	d.TouchRng(actorIdx)
+
+	return nil
+}
+func (a *DominionApp) ReleaseRng(s *channel.State, actorIdx channel.Index, image []byte) error {
+	d, ok := s.Data.(*DominionAppData)
+	if !ok {
+		return fmt.Errorf("invalid data type: %T", d)
+	}
+
+	d.Release(actorIdx, image)
+
+	return nil
+}
+func (a *DominionApp) Draw(s *channel.State, actorIdx channel.Index) error {
+	d, ok := s.Data.(*DominionAppData)
+	if !ok {
+		return fmt.Errorf("invalid data type: %T", d)
+	}
+
+	d.Draw(actorIdx)
 	return nil
 }
