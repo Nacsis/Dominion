@@ -21,61 +21,21 @@ const (
 	VictoryBig
 )
 
-func CardOfType(ct CardType) Card {
-	// Money
-	if 0 <= int(ct) && int(ct) < 3 {
-		return NewMoneyCard(ct)
-	} else {
-		// victory
-		return NewVictoryCard(ct)
-	}
-}
-
-func NewMoneyCard(ct CardType) Card {
+func CardOfType(ct CardType) (Card, error) {
 	switch ct {
 	case MoneyCopper:
-		return NewCard(util.MonValueCopper, 0, MoneyCopper)
+		return Card{money: util.MonValueCopper, cardType: MoneyCopper}, nil
 	case MoneySilver:
-		return NewCard(util.MonValueSilver, 0, MoneySilver)
+		return Card{money: util.MonValueSilver, cardType: MoneySilver}, nil
 	case MoneyGold:
-		return NewCard(util.MonValueGold, 0, MoneyGold)
-	default:
-		panic("Not Found")
-	}
-}
-func NewVictoryCard(ct CardType) Card {
-	switch ct {
+		return Card{money: util.MonValueGold, cardType: MoneyGold}, nil
 	case VictorySmall:
-		return NewCard(0, 1, VictorySmall)
+		return Card{victoryPoints: 1, cardType: VictorySmall}, nil
 	case VictoryMid:
-		return NewCard(0, 2, VictoryMid)
+		return Card{victoryPoints: 2, cardType: VictoryMid}, nil
 	case VictoryBig:
-		return NewCard(0, 6, VictoryBig)
+		return Card{victoryPoints: 3, cardType: VictoryBig}, nil
 	default:
-		panic("Not Found")
-	}
-}
-
-func NewCard(m, v uint8, ct CardType) Card {
-	return Card{
-		money:         m,
-		victoryPoints: v,
-		cardType:      ct,
-	}
-}
-
-func (c *Card) ToByte() []byte {
-	var dataBytes = make([]byte, util.CardSize)
-	dataBytes[0] = byte(c.cardType)
-	dataBytes[1] = c.money
-	dataBytes[2] = c.victoryPoints
-	return dataBytes
-}
-
-func (c *Card) Of(dataBytes []byte) Card {
-	return Card{
-		cardType:      CardType(dataBytes[0]),
-		money:         dataBytes[1],
-		victoryPoints: dataBytes[2],
+		return Card{}, util.ThrowError(util.ErrorConstCARD, "CardOfType", "no card for card type found")
 	}
 }

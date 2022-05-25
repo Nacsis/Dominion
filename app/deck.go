@@ -1,7 +1,7 @@
 package app
 
 import (
-	"log"
+	"perun.network/perun-examples/app-channel/app/util"
 )
 
 type Deck struct {
@@ -25,17 +25,24 @@ func (d *Deck) ToByte() []byte {
 
 func (d *Deck) Of(dataBytes []byte) {
 	mainCardPileSize := dataBytes[0]
-	log.Println(mainCardPileSize)
-	log.Println(dataBytes[1:mainCardPileSize])
 	d.mainCardPile.Of(dataBytes[1:mainCardPileSize])
 
 	handCardSize := dataBytes[mainCardPileSize]
-	log.Println(handCardSize)
-	log.Println(dataBytes[handCardSize : +handCardSize+mainCardPileSize])
-	d.handCards.Of(dataBytes[handCardSize : +handCardSize+mainCardPileSize])
+	d.handCards.Of(dataBytes[handCardSize : handCardSize+mainCardPileSize])
 }
 
-func (d *Deck) draw(seed []byte) {
-	card := d.mainCardPile.draw(seed)
-	d.handCards.add(card)
+// DrawOneCard draw one card from main card pile and add it to hand cards
+func (d *Deck) DrawOneCard(seed []byte) error {
+	card, err := d.mainCardPile.DrawCardBasedOnSeed(seed)
+
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDECK, "DrawOneCard", err)
+	}
+
+	err = d.handCards.AddCard(card)
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDECK, "DrawOneCard", err)
+	}
+
+	return nil
 }

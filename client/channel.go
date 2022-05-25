@@ -55,7 +55,7 @@ func (g *DominionChannel) CommitRng(preImage []byte) {
 			return fmt.Errorf("invalid app type: %T", dominionApp)
 		}
 
-		return dominionApp.CommitRng(state, g.ch.Idx(), preImage)
+		return dominionApp.RngCommit(state, g.ch.Idx(), preImage)
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.
@@ -68,7 +68,7 @@ func (g *DominionChannel) TouchRng() {
 			return fmt.Errorf("invalid app type: %T", dominionApp)
 		}
 
-		return dominionApp.TouchRng(state, g.ch.Idx())
+		return dominionApp.RngTouch(state, g.ch.Idx())
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.
@@ -82,7 +82,7 @@ func (g *DominionChannel) Release(preImage []byte) {
 			return fmt.Errorf("invalid app type: %T", dominionApp)
 		}
 
-		return dominionApp.ReleaseRng(state, g.ch.Idx(), preImage)
+		return dominionApp.RngRelease(state, g.ch.Idx(), preImage)
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.
@@ -96,7 +96,7 @@ func (g *DominionChannel) Draw() {
 			return fmt.Errorf("invalid app type: %T", dominionApp)
 		}
 
-		return dominionApp.Draw(state, g.ch.Idx())
+		return dominionApp.DrawOneCard(state, g.ch.Idx())
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.

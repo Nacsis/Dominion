@@ -66,7 +66,7 @@ func deployContracts(nodeURL string, chainID uint64, privateKey string) (adj, ah
 	if err != nil {
 		panic(err)
 	}
-	// Deploy TicTacToe App.
+	// Deploy dominion App.
 	app, tx, _, err := dominionApp.DeployDominionApp(tops, cb)
 	if err != nil {
 		panic(err)
@@ -122,7 +122,7 @@ type balanceLogger struct {
 	ethClient *ethclient.Client
 }
 
-// newBalanceLogger creates a new balance logger for the specified ledger.
+// newBalanceLogger creates a new balance logger.go for the specified ledger.
 func newBalanceLogger(chainURL string) balanceLogger {
 	c, err := ethclient.Dial(chainURL)
 	if err != nil {

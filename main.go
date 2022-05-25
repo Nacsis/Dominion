@@ -64,7 +64,7 @@ func main() {
 
 	// Just a simple Actor switch
 	var alicePreimage = global.RandomBytes(util.HashSize)
-	log.Println(alicePreimage)
+	log.Println(&alicePreimage)
 	appAlice.CommitRng(alicePreimage)
 	log.Println(appAlice)
 	appBob.TouchRng()

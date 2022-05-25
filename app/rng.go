@@ -51,62 +51,84 @@ func (r *RNG) ToByte() []byte {
 	return dataBytes
 }
 
-// Commit is the first function to call when the rng should start.
-// First Commit to a imageA
+// Commit set image A
 func (r *RNG) Commit(preImage []byte) error {
 
-	// ensure clean state
+	if uint8(len(preImage)) != util.HashSize {
+		return util.ThrowError(util.ErrorConstRNG, "Commit", fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
+	}
+
 	r.preImageB = nil
 	r.preImageA = nil
 	r.imageA = nil
 
-	r.imageA = global.Hash(preImage)
+	r.imageA = global.ToImage(preImage)
 
 	return nil
 }
 
-// Touch is the second step to execute for rng.
-// A committed imageA is necessary.
+// Touch update preimage B
 func (r *RNG) Touch() error {
+
 	if r.imageA == nil {
-		return fmt.Errorf("RNG.Touch must be called from state=Comitted")
+		return util.ThrowError(util.ErrorConstRNG, "Touch", "imageA is not set")
 	}
+
 	r.preImageB = global.RandomBytes(util.HashSize)
 	return nil
 }
 
+// Release update preimage A
 func (r *RNG) Release(preImageA []byte) error {
-	if r.preImageB != nil || !global.IsValid(r.imageA, preImageA) {
-		return fmt.Errorf("RNG.Release must be called from state=Touched")
+	if uint8(len(preImageA)) != util.HashSize {
+		return util.ThrowError(util.ErrorConstRNG, "Release", fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
 	}
-	r.preImageA = preImageA
+
+	if r.preImageB == nil {
+		return util.ThrowError(util.ErrorConstRNG, "Release", "preImageB is not set")
+	}
+
+	err := global.ValidatePreImage(r.imageA, preImageA)
+	if err != nil {
+		return util.ForwardError(util.ErrorConstRNG, "Release", err)
+	}
+
+	r.preImageA = append([]byte(nil), preImageA...)
 	return nil
 }
 
-// Value return joined random value
-func (r *RNG) Value() ([]byte, error) {
-	var random []byte
-
-	if r.preImageB != nil || !global.IsValid(r.imageA, r.preImageA) {
-		return []byte{}, fmt.Errorf("RNG.random must be called from state=Released")
+// CalcCorrespondingValue return joined random value
+func (r *RNG) CalcCorrespondingValue() ([]byte, error) {
+	if r.preImageB == nil {
+		return nil, util.ThrowError(util.ErrorConstRNG, "CalcCorrespondingValue", "preImageB is not set")
 	}
 
-	random = global.Xor(r.preImageA, r.preImageB)
+	err := global.ValidatePreImage(r.imageA, r.preImageA)
+	if err != nil {
+		return nil, util.ForwardError(util.ErrorConstRNG, "CalcCorrespondingValue", err)
+	}
 
-	return random, r.Validate(random)
+	result, err := global.Xor(r.preImageA, r.preImageB)
+	if err != nil {
+		return nil, util.ForwardError(util.ErrorConstRNG, "CalcCorrespondingValue", err)
+	}
+	return result, r.Validate(result)
 }
 
-func (r *RNG) Validate(random []byte) error {
-
-	// h = hash(imageA)
-	err := global.Valid(r.preImageA, r.preImageA)
-	if err == nil {
-		return err
+// Validate value is same as CalcCorrespondingValue()
+func (r *RNG) Validate(value []byte) error {
+	err := global.ValidatePreImage(r.imageA, r.preImageA)
+	if err != nil {
+		return util.ForwardError(util.ErrorConstRNG, "Validate", err)
 	}
 
-	// random = imageA ^ preImageB
-	if !bytes.Equal(random, global.Xor(r.preImageA, r.preImageB)) {
-		return fmt.Errorf("Commitment Error: random != imageA xor preImageB")
+	v, err := global.Xor(r.preImageA, r.preImageB)
+	if err != nil {
+		return util.ForwardError(util.ErrorConstRNG, "Validate", err)
+	}
+
+	if !bytes.Equal(value, v) {
+		return util.ThrowError(util.ErrorConstRNG, "Commit", fmt.Sprintf("given value %v doesn't match CalcCorrespondingValue() result", value))
 	}
 
 	return nil

@@ -3,7 +3,6 @@ package app
 import (
 	"github.com/pkg/errors"
 	"io"
-	"log"
 	"perun.network/go-perun/channel"
 	"perun.network/perun-examples/app-channel/app/util"
 )
@@ -44,63 +43,85 @@ func (d *DominionAppData) Clone() channel.Data {
 	return &_d
 }
 
-func (d *DominionAppData) switchActor(actorIdx channel.Index) {
-
-	if d.NextActor != util.Uint8safe(uint16(actorIdx)) {
-		panic("invalid actor")
-	}
-	d.NextActor += +1
-}
-
-func (d *DominionAppData) CommitRng(actorIdx channel.Index, image []byte) {
-
-	if d.NextActor != util.Uint8safe(uint16(actorIdx)) {
-		//panic("invalid actor")
-	}
-	d.rng.Commit(image)
-}
-
-func (d *DominionAppData) TouchRng(actorIdx channel.Index) {
-
-	if d.NextActor != util.Uint8safe(uint16(actorIdx)) {
-		//panic("invalid actor")
-	}
-	d.rng.Touch()
-}
-
-func (d *DominionAppData) Release(actorIdx channel.Index, image []byte) {
-
-	if d.NextActor != util.Uint8safe(uint16(actorIdx)) {
-		//panic("invalid actor")
-	}
-	d.rng.Release(image)
-}
-
-func (d *DominionAppData) Draw(actorIdx channel.Index) {
-
-	if d.NextActor != util.Uint8safe(uint16(actorIdx)) {
-		//panic("invalid actor")
-	}
-	value, err := d.rng.Value()
-	if err != nil {
-		//TODO
-	}
-	d.CardDecks[actorIdx].draw(value)
-	log.Println(d.CardDecks)
-}
-
-func (a *DominionAppData) Init(firstActor channel.Index) error {
+func (d *DominionAppData) Init(firstActor channel.Index) error {
 	// Set first actor
-	a.NextActor = uint8(firstActor)
+	d.NextActor = uint8(firstActor)
 
 	// Set initial decks
 	for deckNum := 0; deckNum < util.NumPlayers; deckNum++ {
 		for i := 0; i < util.InitialMoneyCards; i++ {
-			a.CardDecks[deckNum].mainCardPile.cards = append(a.CardDecks[deckNum].mainCardPile.cards, CardOfType(MoneyCopper))
+			card, _ := CardOfType(MoneyCopper) // TODO HAndle error
+			d.CardDecks[deckNum].mainCardPile.cards = append(d.CardDecks[deckNum].mainCardPile.cards, card)
 		}
 		for i := 0; i < util.InitialVictoryCards; i++ {
-			a.CardDecks[deckNum].mainCardPile.cards = append(a.CardDecks[deckNum].mainCardPile.cards, CardOfType(VictorySmall))
+			card, _ := CardOfType(VictorySmall) // TODO HAndle error
+			d.CardDecks[deckNum].mainCardPile.cards = append(d.CardDecks[deckNum].mainCardPile.cards, card)
 		}
 	}
+	return nil
+}
+
+// TODO JUST FOR TEST; REMOVE LATER
+func (d *DominionAppData) switchActor(actorIdx channel.Index) {
+
+	// TODO Actor check
+
+	d.NextActor += +1
+}
+
+//------ RNG ------
+
+// RngCommit player who wants to DrawOneCard commit to an preimage by setting corresponding image
+func (d *DominionAppData) RngCommit(actorIdx channel.Index, image []byte) error {
+
+	// TODO Actor check
+	err := d.rng.Commit(image)
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "RngCommit", err)
+	}
+	return nil
+}
+
+// RngTouch the player how doesn't DrawOneCard choose an image
+func (d *DominionAppData) RngTouch(actorIdx channel.Index) error {
+
+	// TODO Actor check
+
+	err := d.rng.Touch()
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "RngTouch", err)
+	}
+	return nil
+}
+
+// RngRelease player who wants to DrawOneCard publish preimage for published image
+func (d *DominionAppData) RngRelease(actorIdx channel.Index, image []byte) error {
+
+	// TODO Actor check
+
+	err := d.rng.Release(image)
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "RngRelease", err)
+	}
+	return nil
+}
+
+// DrawOneCard draws one card to the hand pile. A full rng need to be performed before.
+func (d *DominionAppData) DrawOneCard(actorIdx channel.Index) error {
+
+	// TODO Actor check
+
+	value, err := d.rng.CalcCorrespondingValue()
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "DrawOneCard", err)
+	}
+
+	err = d.CardDecks[actorIdx].DrawOneCard(value)
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "DrawOneCard", err)
+	}
+	// Rng was used, therefore delete it
+	d.rng = RNG{}
+
 	return nil
 }
