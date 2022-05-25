@@ -81,16 +81,16 @@ func (r *RNG) Touch() error {
 // Release update preimage A
 func (r *RNG) Release(preImageA []byte) error {
 	if uint8(len(preImageA)) != util.HashSize {
-		return util.ThrowError(util.ErrorConstRNG, "Release", fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
+		return util.ThrowError(util.ErrorConstRNG, "RngRelease", fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
 	}
 
 	if r.preImageB == nil {
-		return util.ThrowError(util.ErrorConstRNG, "Release", "preImageB is not set")
+		return util.ThrowError(util.ErrorConstRNG, "RngRelease", "preImageB is not set")
 	}
 
 	err := global.ValidatePreImage(r.imageA, preImageA)
 	if err != nil {
-		return util.ForwardError(util.ErrorConstRNG, "Release", err)
+		return util.ForwardError(util.ErrorConstRNG, "RngRelease", err)
 	}
 
 	r.preImageA = append([]byte(nil), preImageA...)

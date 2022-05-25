@@ -47,8 +47,7 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 	var err error
 
 	// Next Actor
-	appData.NextActor, err = util.ReadUInt8(r)
-
+	err = util.ReadObject(r, &appData.turn)
 	if err != nil {
 		return nil, util.ForwardError(util.ErrorConstAPP, "DecodeData", err)
 	}
@@ -125,11 +124,11 @@ func (a *DominionApp) ValidInit(p *channel.Params, s *channel.State) error {
 	}
 
 	//valid next actor
-	if d.NextActor >= util.NumPlayers {
-		return util.ThrowError(util.ErrorConstAPP, "ValidInit", fmt.Sprintf("Next actor is not valid. Should be smaller than %v but is %v", util.NumPlayers, d.NextActor))
+	if d.turn.nextActor >= util.NumPlayers {
+		return util.ThrowError(util.ErrorConstAPP, "ValidInit", fmt.Sprintf("Next actor is not valid. Should be smaller than %v but is %v", util.NumPlayers, d.turn.nextActor))
 	}
 
-	// TODO CHECK if initData(Mit d.NextActor == d)
+	// TODO CHECK if initData(Mit d.nextActor == d)
 	return nil
 }
 
@@ -140,22 +139,7 @@ func (a *DominionApp) InitData(firstActor channel.Index) *DominionAppData {
 	return &ad
 }
 
-// TODO Just a test remove later
-func (a *DominionApp) SwitchActor(s *channel.State, actorIdx channel.Index) error {
-	d, ok := s.Data.(*DominionAppData)
-	if !ok {
-		return fmt.Errorf("invalid data type: %T", d)
-	}
-
-	d.switchActor(actorIdx)
-
-	s.IsFinal = true
-	s.Balances = ComputeFinalBalances(s.Balances)
-
-	return nil
-}
-
-//------ RNG ------
+//------------------------ RNG ------------------------
 
 // RngCommit player who wants to DrawOneCard commit to an preimage by setting corresponding image
 func (a *DominionApp) RngCommit(s *channel.State, actorIdx channel.Index, image []byte) error {
@@ -202,6 +186,8 @@ func (a *DominionApp) RngRelease(s *channel.State, actorIdx channel.Index, image
 	return nil
 }
 
+//------------------------ Drawing ------------------------
+
 // DrawOneCard draws one card to the hand pile. A full rng need to be performed before.
 func (a *DominionApp) DrawOneCard(s *channel.State, actorIdx channel.Index) error {
 	d, ok := s.Data.(*DominionAppData)
@@ -213,5 +199,26 @@ func (a *DominionApp) DrawOneCard(s *channel.State, actorIdx channel.Index) erro
 	if err != nil {
 		return util.ForwardError(util.ErrorConstAPP, "RngRelease", err)
 	}
+	return nil
+}
+
+//------------------------ General turn mechanics ------------------------
+
+// EndTurn ends the current turn
+func (a *DominionApp) EndTurn(s *channel.State, actorIdx channel.Index) error {
+	d, ok := s.Data.(*DominionAppData)
+	if !ok {
+		return util.ThrowError(util.ErrorConstAPP, "EndTurn", fmt.Sprintf("AppData is in an invalid data format %T", d))
+	}
+	err := d.EndTurn(actorIdx)
+
+	if err != nil {
+		return util.ForwardError(util.ErrorConstAPP, "RngRelease", err)
+	}
+
+	// TODO Just a test remove later
+	s.IsFinal = true
+	s.Balances = ComputeFinalBalances(s.Balances)
+
 	return nil
 }

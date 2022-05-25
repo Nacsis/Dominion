@@ -46,3 +46,12 @@ func (d *Deck) DrawOneCard(seed []byte) error {
 
 	return nil
 }
+
+// InitialHandDrawn show if player already drawn the correct amount of cards
+func (d *Deck) isInitialHandDrawn() bool {
+	return len(d.handCards.cards) >= util.InitialHandSize
+}
+
+func (d *Deck) isAllowedToDraw() bool {
+	return d.isInitialHandDrawn() && true
+}

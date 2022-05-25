@@ -3,6 +3,7 @@ package util
 const (
 	// Game Properties
 	NumPlayers          = 2
+	InitialHandSize     = 5
 	InitialDeckSize     = 8
 	InitialMoneyCards   = InitialDeckSize / 2
 	InitialVictoryCards = InitialDeckSize / 2
@@ -23,10 +24,11 @@ const (
 	CostsGold   uint8 = 6
 
 	// Error constant used for logging
-	ErrorConstRNG  = "rng"
-	ErrorConstDATA = "data"
-	ErrorConstAPP  = "app"
-	ErrorConstPILE = "pile"
-	ErrorConstDECK = "deck"
-	ErrorConstCARD = "card"
+	ErrorConstRNG     = "rng"
+	ErrorConstDATA    = "data"
+	ErrorConstAPP     = "app"
+	ErrorConstChannel = "channel"
+	ErrorConstPILE    = "pile"
+	ErrorConstDECK    = "deck"
+	ErrorConstCARD    = "card"
 )

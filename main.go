@@ -65,15 +65,15 @@ func main() {
 	// Just a simple Actor switch
 	var alicePreimage = global.RandomBytes(util.HashSize)
 	log.Println(&alicePreimage)
-	appAlice.CommitRng(alicePreimage)
+	appAlice.RngCommit(alicePreimage)
 	log.Println(appAlice)
-	appBob.TouchRng()
+	appBob.RngTouch()
 
-	appAlice.Release(alicePreimage)
+	appAlice.RngRelease(alicePreimage)
 
-	appAlice.Draw()
+	appAlice.DrawOneCard()
 
-	appAlice.SwitchActor()
+	appAlice.EndTurn()
 	log.Println("Actor switch performed")
 
 	// Payout.
