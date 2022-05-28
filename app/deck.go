@@ -5,18 +5,17 @@ import (
 )
 
 type Deck struct {
-	mainCardPile Pile
-	handCards    Pile
+	MainCardPile Pile
+	HandCards    Pile
 }
 
 func (d *Deck) ToByte() []byte {
-	mainCardPileBytes := d.mainCardPile.ToByte()
-	handCardsBytes := d.handCards.ToByte()
+	mainCardPileBytes := d.MainCardPile.ToByte()
+	handCardsBytes := d.HandCards.ToByte()
 
 	var deckByteLength = len(mainCardPileBytes) + len(handCardsBytes) + 1 // +1 is for length
-	var dataBytes = make([]byte, deckByteLength)
+	var dataBytes = []byte{byte(deckByteLength)}
 
-	dataBytes[0] = byte(deckByteLength)
 	dataBytes = append(dataBytes, mainCardPileBytes...)
 	dataBytes = append(dataBytes, handCardsBytes...)
 
@@ -25,21 +24,21 @@ func (d *Deck) ToByte() []byte {
 
 func (d *Deck) Of(dataBytes []byte) {
 	mainCardPileSize := dataBytes[0]
-	d.mainCardPile.Of(dataBytes[1:mainCardPileSize])
+	d.MainCardPile.Of(dataBytes[1 : mainCardPileSize+1])
 
-	handCardSize := dataBytes[mainCardPileSize]
-	d.handCards.Of(dataBytes[handCardSize : handCardSize+mainCardPileSize])
+	handCardSize := dataBytes[mainCardPileSize+1]
+	d.HandCards.Of(dataBytes[mainCardPileSize+2 : mainCardPileSize+2+handCardSize])
 }
 
-// DrawOneCard draw one card from main card pile and add it to hand cards
+// DrawOneCard draw one card from main card pile and add it to hand Cards
 func (d *Deck) DrawOneCard(seed []byte) error {
-	card, err := d.mainCardPile.DrawCardBasedOnSeed(seed)
+	card, err := d.MainCardPile.DrawCardBasedOnSeed(seed)
 
 	if err != nil {
 		return util.ForwardError(util.ErrorConstDECK, "DrawOneCard", err)
 	}
 
-	err = d.handCards.AddCard(card)
+	err = d.HandCards.AddCard(card)
 	if err != nil {
 		return util.ForwardError(util.ErrorConstDECK, "DrawOneCard", err)
 	}
@@ -47,9 +46,9 @@ func (d *Deck) DrawOneCard(seed []byte) error {
 	return nil
 }
 
-// InitialHandDrawn show if player already drawn the correct amount of cards
+// InitialHandDrawn show if player already drawn the correct amount of Cards
 func (d *Deck) isInitialHandDrawn() bool {
-	return len(d.handCards.cards) >= util.InitialHandSize
+	return len(d.HandCards.Cards) >= util.InitialHandSize
 }
 
 func (d *Deck) isAllowedToDraw() bool {

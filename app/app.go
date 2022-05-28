@@ -2,7 +2,7 @@
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
-// You may obtain imageA copy of the License at
+// You may obtain ImageA copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
@@ -22,7 +22,7 @@ import (
 	"perun.network/perun-examples/app-channel/app/util"
 )
 
-// DominionApp is imageA channel app.
+// DominionApp is ImageA channel app.
 type DominionApp struct {
 	Addr wallet.Address
 }

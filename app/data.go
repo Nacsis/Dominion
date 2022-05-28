@@ -37,7 +37,7 @@ func (d *DominionAppData) Encode(w io.Writer) error {
 	return nil
 }
 
-// Clone returns imageA deep copy of the app data.
+// Clone returns ImageA deep copy of the app data.
 func (d *DominionAppData) Clone() channel.Data {
 	_d := *d
 	return &_d
@@ -50,12 +50,15 @@ func (d *DominionAppData) Init(firstActor channel.Index) error {
 	// Set initial decks
 	for deckNum := 0; deckNum < util.NumPlayers; deckNum++ {
 		for i := 0; i < util.InitialMoneyCards; i++ {
-			card, _ := CardOfType(MoneyCopper) // TODO Handle error
-			d.CardDecks[deckNum].mainCardPile.cards = append(d.CardDecks[deckNum].mainCardPile.cards, card)
+
+			card := Card{}
+			card.Of([]byte{byte(MoneyCopper)}) // TODO Handle error
+			d.CardDecks[deckNum].MainCardPile.AddCard(card)
 		}
 		for i := 0; i < util.InitialVictoryCards; i++ {
-			card, _ := CardOfType(VictorySmall) // TODO Handle error
-			d.CardDecks[deckNum].mainCardPile.cards = append(d.CardDecks[deckNum].mainCardPile.cards, card)
+			card := Card{}
+			card.Of([]byte{byte(VictorySmall)}) // TODO Handle error
+			d.CardDecks[deckNum].MainCardPile.AddCard(card)
 		}
 	}
 	return nil

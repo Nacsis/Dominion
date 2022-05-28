@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"perun.network/perun-examples/app-channel/app/util"
 	"perun.network/perun-examples/app-channel/global"
 )
@@ -10,40 +11,41 @@ import (
 type State uint8
 
 type RNG struct {
-	imageA, preImageB, preImageA []byte
+	ImageA, PreImageB, PreImageA []byte
 }
 
 func (r *RNG) Of(dataBytes []byte) {
-	var size = dataBytes[0]
+	var size = uint8(len(dataBytes))
+	log.Println(size)
 	if size == 0 {
 		return
 	}
 	if size >= util.HashSize {
-		r.imageA = dataBytes[1 : 1+util.HashSize] // 1 - 20
+		r.ImageA = dataBytes[:util.HashSize] // 1 - 20
 	}
 	if size >= 2*util.HashSize {
-		r.imageA = dataBytes[1+util.HashSize : 1+2*util.HashSize] // 21 - 40
+		r.PreImageB = dataBytes[util.HashSize : 2*util.HashSize] // 21 - 40
 	}
 	if size >= 3*util.HashSize {
-		r.imageA = dataBytes[1+2*util.HashSize : 1+3*util.HashSize] //40 - 60
+		r.PreImageA = dataBytes[2*util.HashSize : 3*util.HashSize] //40 - 60
 	}
 }
 func (r *RNG) ToByte() []byte {
 
-	// if imageA is not set end with rng length 0
+	// if ImageA is not set end with rng length 0
 	var dataBytes = make([]byte, 1)
 
 	// TODO Muss ich das setzen oder es es automatisch drin?
 	dataBytes[0] = 0
 
-	if r.imageA != nil && uint8(len(r.imageA)) == util.HashSize {
-		dataBytes = append(dataBytes, r.imageA...)
+	if r.ImageA != nil && uint8(len(r.ImageA)) == util.HashSize {
+		dataBytes = append(dataBytes, r.ImageA...)
 	}
-	if r.preImageB != nil && uint8(len(r.preImageB)) == util.HashSize {
-		dataBytes = append(dataBytes, r.preImageB...)
+	if r.PreImageB != nil && uint8(len(r.PreImageB)) == util.HashSize {
+		dataBytes = append(dataBytes, r.PreImageB...)
 	}
-	if r.preImageA != nil && uint8(len(r.preImageA)) == util.HashSize {
-		dataBytes = append(dataBytes, r.preImageA...)
+	if r.PreImageA != nil && uint8(len(r.PreImageA)) == util.HashSize {
+		dataBytes = append(dataBytes, r.PreImageA...)
 	}
 
 	// To define how lang the arrays a
@@ -58,11 +60,11 @@ func (r *RNG) Commit(preImage []byte) error {
 		return util.ThrowError(util.ErrorConstRNG, "Commit", fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
 	}
 
-	r.preImageB = nil
-	r.preImageA = nil
-	r.imageA = nil
+	r.PreImageB = nil
+	r.PreImageA = nil
+	r.ImageA = nil
 
-	r.imageA = global.ToImage(preImage)
+	r.ImageA = global.ToImage(preImage)
 
 	return nil
 }
@@ -70,11 +72,11 @@ func (r *RNG) Commit(preImage []byte) error {
 // Touch update preimage B
 func (r *RNG) Touch() error {
 
-	if r.imageA == nil {
-		return util.ThrowError(util.ErrorConstRNG, "Touch", "imageA is not set")
+	if r.ImageA == nil {
+		return util.ThrowError(util.ErrorConstRNG, "Touch", "ImageA is not set")
 	}
 
-	r.preImageB = global.RandomBytes(util.HashSize)
+	r.PreImageB = global.RandomBytes(util.HashSize)
 	return nil
 }
 
@@ -84,31 +86,31 @@ func (r *RNG) Release(preImageA []byte) error {
 		return util.ThrowError(util.ErrorConstRNG, "RngRelease", fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
 	}
 
-	if r.preImageB == nil {
-		return util.ThrowError(util.ErrorConstRNG, "RngRelease", "preImageB is not set")
+	if r.PreImageB == nil {
+		return util.ThrowError(util.ErrorConstRNG, "RngRelease", "PreImageB is not set")
 	}
 
-	err := global.ValidatePreImage(r.imageA, preImageA)
+	err := global.ValidatePreImage(r.ImageA, preImageA)
 	if err != nil {
 		return util.ForwardError(util.ErrorConstRNG, "RngRelease", err)
 	}
 
-	r.preImageA = append([]byte(nil), preImageA...)
+	r.PreImageA = append([]byte(nil), preImageA...)
 	return nil
 }
 
 // CalcCorrespondingValue return joined random value
 func (r *RNG) CalcCorrespondingValue() ([]byte, error) {
-	if r.preImageB == nil {
-		return nil, util.ThrowError(util.ErrorConstRNG, "CalcCorrespondingValue", "preImageB is not set")
+	if r.PreImageB == nil {
+		return nil, util.ThrowError(util.ErrorConstRNG, "CalcCorrespondingValue", "PreImageB is not set")
 	}
 
-	err := global.ValidatePreImage(r.imageA, r.preImageA)
+	err := global.ValidatePreImage(r.ImageA, r.PreImageA)
 	if err != nil {
 		return nil, util.ForwardError(util.ErrorConstRNG, "CalcCorrespondingValue", err)
 	}
 
-	result, err := global.Xor(r.preImageA, r.preImageB)
+	result, err := global.Xor(r.PreImageA, r.PreImageB)
 	if err != nil {
 		return nil, util.ForwardError(util.ErrorConstRNG, "CalcCorrespondingValue", err)
 	}
@@ -117,12 +119,12 @@ func (r *RNG) CalcCorrespondingValue() ([]byte, error) {
 
 // Validate value is same as CalcCorrespondingValue()
 func (r *RNG) Validate(value []byte) error {
-	err := global.ValidatePreImage(r.imageA, r.preImageA)
+	err := global.ValidatePreImage(r.ImageA, r.PreImageA)
 	if err != nil {
 		return util.ForwardError(util.ErrorConstRNG, "Validate", err)
 	}
 
-	v, err := global.Xor(r.preImageA, r.preImageB)
+	v, err := global.Xor(r.PreImageA, r.PreImageB)
 	if err != nil {
 		return util.ForwardError(util.ErrorConstRNG, "Validate", err)
 	}

@@ -5,9 +5,9 @@ import (
 )
 
 type Card struct {
-	cardType      CardType
-	money         uint8
-	victoryPoints uint8
+	CardType      CardType
+	Money         uint8
+	VictoryPoints uint8
 }
 
 type CardType uint8
@@ -21,21 +21,29 @@ const (
 	VictoryBig
 )
 
-func CardOfType(ct CardType) (Card, error) {
-	switch ct {
+func (c *Card) ToByte() []byte {
+	return []byte{byte(c.CardType)}
+}
+
+func (c *Card) Of(dataBytes []byte) {
+	switch CardType(dataBytes[0]) {
 	case MoneyCopper:
-		return Card{money: util.MonValueCopper, cardType: MoneyCopper}, nil
+		c.Money = util.MonValueCopper
+		c.CardType = MoneyCopper
 	case MoneySilver:
-		return Card{money: util.MonValueSilver, cardType: MoneySilver}, nil
+		c.Money = util.MonValueSilver
+		c.CardType = MoneySilver
 	case MoneyGold:
-		return Card{money: util.MonValueGold, cardType: MoneyGold}, nil
+		c.Money = util.MonValueGold
+		c.CardType = MoneyGold
 	case VictorySmall:
-		return Card{victoryPoints: 1, cardType: VictorySmall}, nil
+		c.VictoryPoints = 1
+		c.CardType = VictorySmall
 	case VictoryMid:
-		return Card{victoryPoints: 2, cardType: VictoryMid}, nil
+		c.VictoryPoints = 2
+		c.CardType = VictoryMid
 	case VictoryBig:
-		return Card{victoryPoints: 3, cardType: VictoryBig}, nil
-	default:
-		return Card{}, util.ThrowError(util.ErrorConstCARD, "CardOfType", "no card for card type found")
+		c.VictoryPoints = 3
+		c.CardType = VictoryBig
 	}
 }
