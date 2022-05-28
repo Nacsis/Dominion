@@ -50,11 +50,11 @@ func (d *DominionAppData) Init(firstActor channel.Index) error {
 	// Set initial decks
 	for deckNum := 0; deckNum < util.NumPlayers; deckNum++ {
 		for i := 0; i < util.InitialMoneyCards; i++ {
-			card, _ := CardOfType(MoneyCopper) // TODO HAndle error
+			card, _ := CardOfType(MoneyCopper) // TODO Handle error
 			d.CardDecks[deckNum].mainCardPile.cards = append(d.CardDecks[deckNum].mainCardPile.cards, card)
 		}
 		for i := 0; i < util.InitialVictoryCards; i++ {
-			card, _ := CardOfType(VictorySmall) // TODO HAndle error
+			card, _ := CardOfType(VictorySmall) // TODO Handle error
 			d.CardDecks[deckNum].mainCardPile.cards = append(d.CardDecks[deckNum].mainCardPile.cards, card)
 		}
 	}

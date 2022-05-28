@@ -41,8 +41,5 @@ contract DominionApp is App {
 
         require(params.participants.length == numParts, "number of participants");
 
-        uint8 actorIndex = uint8(from.appData[actorDataIndex]);
-        require(actorIndex == signerIdx, "actor not signer");
-        require((actorIndex + 1) % numParts == uint8(to.appData[actorDataIndex]), "next actor");
     }
 }
