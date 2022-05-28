@@ -11,14 +11,11 @@ type Pile struct {
 }
 
 func (p *Pile) ToByte() []byte {
-	var pileSize = len(p.Cards)
-	var dataBytes = make([]byte, 0)
-	dataBytes = append(dataBytes, byte(pileSize))
-
-	for i := 0; i < pileSize; i++ {
-		dataBytes = append(dataBytes, p.Cards[i].ToByte()...)
+	dataBytes := make([]byte, 0)
+	for _, card := range p.Cards {
+		dataBytes = append(dataBytes, card.ToByte()...)
 	}
-	return dataBytes
+	return append([]byte{byte(len(dataBytes))}, dataBytes...)
 }
 
 func (p *Pile) Of(dataBytes []byte) {

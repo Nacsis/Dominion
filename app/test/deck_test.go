@@ -28,11 +28,13 @@ func Test_Deck_Draw(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, len(deck.MainCardPile.Cards) == len(cardTypesMain)-1)
 	assert.True(t, len(deck.HandCards.Cards) == len(cardTypesHand)+1)
-
 	var difMain []app.CardType
+	indexDif := 0
+
 	for i := 0; i < len(cardTypesMain)-1; i++ {
-		if deck.MainCardPile.Cards[i].CardType != cardTypesMain[i] {
+		if deck.MainCardPile.Cards[i].CardType != cardTypesMain[i+indexDif] {
 			difMain = append(difMain, cardTypesMain[i])
+			indexDif++
 		}
 	}
 	if len(difMain) == 0 {

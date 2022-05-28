@@ -10,16 +10,9 @@ type Deck struct {
 }
 
 func (d *Deck) ToByte() []byte {
-	mainCardPileBytes := d.MainCardPile.ToByte()
-	handCardsBytes := d.HandCards.ToByte()
-
-	var deckByteLength = len(mainCardPileBytes) + len(handCardsBytes) + 1 // +1 is for length
-	var dataBytes = []byte{byte(deckByteLength)}
-
-	dataBytes = append(dataBytes, mainCardPileBytes...)
-	dataBytes = append(dataBytes, handCardsBytes...)
-
-	return dataBytes
+	dataBytes := append([]byte{}, d.MainCardPile.ToByte()...)
+	dataBytes = append(dataBytes, d.HandCards.ToByte()...)
+	return append([]byte{byte(len(dataBytes))}, dataBytes...)
 }
 
 func (d *Deck) Of(dataBytes []byte) {
@@ -52,5 +45,5 @@ func (d *Deck) isInitialHandDrawn() bool {
 }
 
 func (d *Deck) isAllowedToDraw() bool {
-	return d.isInitialHandDrawn() && true
+	return d.isInitialHandDrawn()
 }

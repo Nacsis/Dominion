@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"perun.network/perun-examples/app-channel/app/util"
 	"perun.network/perun-examples/app-channel/global"
 )
@@ -16,7 +15,7 @@ type RNG struct {
 
 func (r *RNG) Of(dataBytes []byte) {
 	var size = uint8(len(dataBytes))
-	log.Println(size)
+
 	if size == 0 {
 		return
 	}
@@ -33,10 +32,7 @@ func (r *RNG) Of(dataBytes []byte) {
 func (r *RNG) ToByte() []byte {
 
 	// if ImageA is not set end with rng length 0
-	var dataBytes = make([]byte, 1)
-
-	// TODO Muss ich das setzen oder es es automatisch drin?
-	dataBytes[0] = 0
+	var dataBytes = make([]byte, 0)
 
 	if r.ImageA != nil && uint8(len(r.ImageA)) == util.HashSize {
 		dataBytes = append(dataBytes, r.ImageA...)
@@ -48,9 +44,7 @@ func (r *RNG) ToByte() []byte {
 		dataBytes = append(dataBytes, r.PreImageA...)
 	}
 
-	// To define how lang the arrays a
-	dataBytes[0] = byte(len(dataBytes) - 1)
-	return dataBytes
+	return append([]byte{byte(len(dataBytes))}, dataBytes...)
 }
 
 // Commit set image A

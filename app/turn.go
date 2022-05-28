@@ -15,9 +15,7 @@ func InitTurn(firstActor uint8) Turn {
 }
 
 func (t *Turn) ToByte() []byte {
-	var dataBytes = make([]byte, 1)
-
-	dataBytes = append(dataBytes, t.nextActor)
+	dataBytes := append([]byte{}, t.nextActor)
 	dataBytes = append(dataBytes, byte(t.performedAction))
 	for k, v := range t.possibleActions {
 		if v {
@@ -25,8 +23,7 @@ func (t *Turn) ToByte() []byte {
 		}
 	}
 
-	dataBytes[0] = byte(len(dataBytes))
-	return dataBytes
+	return append([]byte{byte(len(dataBytes))}, dataBytes...)
 }
 
 func (t *Turn) Of(dataBytes []byte) {
@@ -41,7 +38,7 @@ func (t *Turn) Of(dataBytes []byte) {
 }
 
 func (t *Turn) allowed(at ActionTypes) bool {
-	return true //TODO REMOVE  t.possibleActions[at]
+	return t.possibleActions[at]
 }
 
 func (t *Turn) SetAllowed(possibleActions ...ActionTypes) {
