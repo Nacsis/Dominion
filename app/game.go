@@ -13,7 +13,7 @@ const (
 	RngRelease
 	DrawCard
 	EndTurn
-	GameEnd
+	GameEnd // must remain at last position
 )
 
 func ComputeFinalBalances(b channel.Balances) channel.Balances {

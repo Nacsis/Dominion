@@ -177,8 +177,10 @@ func (d *DominionAppData) EndTurn(actorIdx channel.Index) error {
 	}
 
 	//------ Perform action ------
-	//TODO Deck.endTurn() hand-> Ablage stapel
-	d.rng = RNG{}
+	err := d.CardDecks[actorIdx].DiscardHandCards()
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "EndTurn", err)
+	}
 
 	//------ Update turn ------
 	d.turnAfter(EndTurn)
@@ -196,26 +198,32 @@ func (d *DominionAppData) turnAfter(at ActionTypes) {
 		break
 	case RngTouch:
 		d.turn.performedAction = RngTouch
-		d.turn.SetAllowed(RngRelease, EndTurn)
+		d.turn.SetAllowed(RngRelease)
 		d.turn.NextActor()
 		break
 	case RngRelease:
 		d.turn.performedAction = RngRelease
-		d.turn.SetAllowed(DrawCard, EndTurn)
+		d.turn.SetAllowed(DrawCard)
 		break
 	case DrawCard:
 		d.turn.performedAction = DrawCard
-		var allowedActions = []ActionTypes{EndTurn}
-		if d.CardDecks[d.turn.nextActor].isAllowedToDraw() {
+		var allowedActions []ActionTypes
+		if d.CardDecks[d.turn.nextActor].IsInitialHandDrawn() {
+			allowedActions = append(allowedActions, EndTurn)
+		} else {
 			allowedActions = append(allowedActions, RngCommit)
 		}
 		d.turn.SetAllowed(allowedActions...)
 		break
 	case EndTurn:
 		d.turn.performedAction = EndTurn
-		d.turn.SetAllowed(RngCommit, EndTurn)
+		d.turn.SetAllowed(RngCommit)
 		d.turn.NextActor()
 		break
 	}
 
+}
+
+func (d *DominionAppData) EndGame(idx channel.Index) error {
+	return nil // TODO endGame check
 }

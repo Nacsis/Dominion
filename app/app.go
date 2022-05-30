@@ -197,7 +197,7 @@ func (a *DominionApp) DrawOneCard(s *channel.State, actorIdx channel.Index) erro
 
 	err := d.DrawOneCard(actorIdx)
 	if err != nil {
-		return util.ForwardError(util.ErrorConstAPP, "RngRelease", err)
+		return util.ForwardError(util.ErrorConstAPP, "DrawOneCard", err)
 	}
 	return nil
 }
@@ -210,13 +210,27 @@ func (a *DominionApp) EndTurn(s *channel.State, actorIdx channel.Index) error {
 	if !ok {
 		return util.ThrowError(util.ErrorConstAPP, "EndTurn", fmt.Sprintf("AppData is in an invalid data format %T", d))
 	}
-	err := d.EndTurn(actorIdx)
 
+	err := d.EndTurn(actorIdx)
 	if err != nil {
-		return util.ForwardError(util.ErrorConstAPP, "RngRelease", err)
+		return util.ForwardError(util.ErrorConstAPP, "EndTurn", err)
 	}
 
-	// TODO Just a test remove later
+	return nil
+}
+
+// EndGame ends game
+func (a *DominionApp) EndGame(s *channel.State, actorIdx channel.Index) error {
+	d, ok := s.Data.(*DominionAppData)
+	if !ok {
+		return util.ThrowError(util.ErrorConstAPP, "EndGame", fmt.Sprintf("AppData is in an invalid data format %T", d))
+	}
+
+	err := d.EndGame(actorIdx)
+	if err != nil {
+		return util.ForwardError(util.ErrorConstAPP, "EndGame", err)
+	}
+
 	s.IsFinal = true
 	s.Balances = ComputeFinalBalances(s.Balances)
 

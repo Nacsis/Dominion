@@ -115,3 +115,20 @@ func (g *DominionChannel) EndTurn() {
 		panic(err) // We panic on error to keep the code simple.
 	}
 }
+
+//------------------------ GameEnd ------------------------
+
+// EndGame
+func (g *DominionChannel) EndGame() {
+	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+		dominionApp, ok := state.App.(*app.DominionApp)
+		if !ok {
+			return util.ThrowError(util.ErrorConstChannel, "EndTurn", fmt.Sprintf("App is in an invalid data format %T", dominionApp))
+		}
+
+		return dominionApp.EndGame(state, g.ch.Idx())
+	})
+	if err != nil {
+		panic(err) // We panic on error to keep the code simple.
+	}
+}

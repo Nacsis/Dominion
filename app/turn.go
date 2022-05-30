@@ -3,20 +3,24 @@ package app
 type Turn struct {
 	nextActor       uint8
 	performedAction ActionTypes
-	possibleActions map[ActionTypes]bool
+	possibleActions [GameEnd]bool
 }
 
 func InitTurn(firstActor uint8) Turn {
+	possibleActions := [GameEnd]bool{}
+	possibleActions[RngCommit] = true
+	possibleActions[EndTurn] = true
 	return Turn{
 		nextActor:       firstActor,
 		performedAction: GameInit,
-		possibleActions: map[ActionTypes]bool{RngCommit: true, EndTurn: true},
+		possibleActions: possibleActions,
 	}
 }
 
 func (t *Turn) ToByte() []byte {
 	dataBytes := append([]byte{}, t.nextActor)
 	dataBytes = append(dataBytes, byte(t.performedAction))
+
 	for k, v := range t.possibleActions {
 		if v {
 			dataBytes = append(dataBytes, byte(k))
@@ -29,11 +33,10 @@ func (t *Turn) ToByte() []byte {
 func (t *Turn) Of(dataBytes []byte) {
 	t.nextActor = dataBytes[0]
 	t.performedAction = ActionTypes(dataBytes[1])
+	t.possibleActions = [GameEnd]bool{}
 
-	t.possibleActions = make(map[ActionTypes]bool)
-
-	for i := 0; i < len(dataBytes[2:]); i++ {
-		t.possibleActions[ActionTypes(dataBytes[2+i])] = true
+	for _, k := range dataBytes[2:] {
+		t.possibleActions[k] = true
 	}
 }
 
@@ -42,7 +45,7 @@ func (t *Turn) allowed(at ActionTypes) bool {
 }
 
 func (t *Turn) SetAllowed(possibleActions ...ActionTypes) {
-	t.possibleActions = map[ActionTypes]bool{}
+	t.possibleActions = [GameEnd]bool{}
 	for _, v := range possibleActions {
 		t.possibleActions[v] = true
 	}

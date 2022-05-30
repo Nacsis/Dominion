@@ -54,7 +54,7 @@ func (p *Pile) SeedToIndex(seed []byte) (int, error) {
 
 	seedAsInt := binary.BigEndian.Uint64(seed)
 	rand.Seed(int64(seedAsInt))
-	return rand.Intn(len(p.Cards) - 1), nil
+	return rand.Intn(len(p.Cards)), nil
 }
 
 // ResizeCards remove gaps in Cards array
@@ -70,6 +70,12 @@ func (p *Pile) ResizeCards() error {
 	p.Cards = cards
 
 	return nil
+}
+func (p *Pile) Clear() {
+	p.Cards = make([]Card, 0)
+}
+func (p *Pile) Size() int {
+	return len(p.Cards)
 }
 
 // AddCard append card to current Cards
