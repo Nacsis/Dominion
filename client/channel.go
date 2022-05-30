@@ -39,10 +39,12 @@ func (g *DominionChannel) Settle() {
 
 // RngCommit player who wants to DrawOneCard commit to an preimage by setting corresponding image
 func (g *DominionChannel) RngCommit(preImage []byte) {
+	errorDescription := util.ErrorInfo{FunctionName: "RngCommit", FileName: util.ErrorConstRNG}
+
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
-			return util.ThrowError(util.ErrorConstChannel, "RngCommit", fmt.Sprintf("App is in an invalid data format %T", dominionApp))
+			return util.ThrowError(errorDescription, fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
 		return dominionApp.RngCommit(state, g.ch.Idx(), preImage)
@@ -54,10 +56,12 @@ func (g *DominionChannel) RngCommit(preImage []byte) {
 
 // RngTouch the player how doesn't DrawOneCard choose an image
 func (g *DominionChannel) RngTouch() {
+	errorDescription := util.ErrorInfo{FunctionName: "RngTouch", FileName: util.ErrorConstRNG}
+
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
-			return util.ThrowError(util.ErrorConstChannel, "RngTouch", fmt.Sprintf("App is in an invalid data format %T", dominionApp))
+			return util.ThrowError(errorDescription, fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
 		return dominionApp.RngTouch(state, g.ch.Idx())
@@ -69,10 +73,12 @@ func (g *DominionChannel) RngTouch() {
 
 // RngRelease player who wants to DrawOneCard publish preimage for published image
 func (g *DominionChannel) RngRelease(preImage []byte) {
+	errorDescription := util.ErrorInfo{FunctionName: "RngRelease", FileName: util.ErrorConstRNG}
+
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
-			return util.ThrowError(util.ErrorConstChannel, "RngRelease", fmt.Sprintf("App is in an invalid data format %T", dominionApp))
+			return util.ThrowError(errorDescription, fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
 		return dominionApp.RngRelease(state, g.ch.Idx(), preImage)
@@ -86,10 +92,12 @@ func (g *DominionChannel) RngRelease(preImage []byte) {
 
 // DrawOneCard draws one card to the hand pile. A full rng need to be performed before.
 func (g *DominionChannel) DrawOneCard() {
+	errorDescription := util.ErrorInfo{FunctionName: "DrawOneCard", FileName: util.ErrorConstRNG}
+
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
-			return util.ThrowError(util.ErrorConstChannel, "DrawOneCard", fmt.Sprintf("App is in an invalid data format %T", dominionApp))
+			return util.ThrowError(errorDescription, fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
 		return dominionApp.DrawOneCard(state, g.ch.Idx())

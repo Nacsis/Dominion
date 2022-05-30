@@ -49,9 +49,10 @@ func (r *RNG) ToByte() []byte {
 
 // Commit set image A
 func (r *RNG) Commit(preImage []byte) error {
+	errorDescription := util.ErrorInfo{FunctionName: "Commit", FileName: util.ErrorConstRNG}
 
 	if uint8(len(preImage)) != util.HashSize {
-		return util.ThrowError(util.ErrorConstRNG, "Commit", fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
+		return util.ThrowError(errorDescription, fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
 	}
 
 	r.PreImageB = nil
@@ -65,9 +66,10 @@ func (r *RNG) Commit(preImage []byte) error {
 
 // Touch update preimage B
 func (r *RNG) Touch() error {
+	errorDescription := util.ErrorInfo{FunctionName: "Touch", FileName: util.ErrorConstRNG}
 
 	if r.ImageA == nil {
-		return util.ThrowError(util.ErrorConstRNG, "Touch", "ImageA is not set")
+		return util.ThrowError(errorDescription, "ImageA is not set")
 	}
 
 	r.PreImageB = global.RandomBytes(util.HashSize)
@@ -76,17 +78,19 @@ func (r *RNG) Touch() error {
 
 // Release update preimage A
 func (r *RNG) Release(preImageA []byte) error {
+	errorDescription := util.ErrorInfo{FunctionName: "Release", FileName: util.ErrorConstRNG}
+
 	if uint8(len(preImageA)) != util.HashSize {
-		return util.ThrowError(util.ErrorConstRNG, "RngRelease", fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
+		return util.ThrowError(errorDescription, fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
 	}
 
 	if r.PreImageB == nil {
-		return util.ThrowError(util.ErrorConstRNG, "RngRelease", "PreImageB is not set")
+		return util.ThrowError(errorDescription, "PreImageB is not set")
 	}
 
 	err := global.ValidatePreImage(r.ImageA, preImageA)
 	if err != nil {
-		return util.ForwardError(util.ErrorConstRNG, "RngRelease", err)
+		return util.ForwardError(errorDescription, err)
 	}
 
 	r.PreImageA = append([]byte(nil), preImageA...)
@@ -95,36 +99,40 @@ func (r *RNG) Release(preImageA []byte) error {
 
 // CalcCorrespondingValue return joined random value
 func (r *RNG) CalcCorrespondingValue() ([]byte, error) {
+	errorDescription := util.ErrorInfo{FunctionName: "CalcCorrespondingValue", FileName: util.ErrorConstRNG}
+
 	if r.PreImageB == nil {
-		return nil, util.ThrowError(util.ErrorConstRNG, "CalcCorrespondingValue", "PreImageB is not set")
+		return nil, util.ThrowError(errorDescription, "PreImageB is not set")
 	}
 
 	err := global.ValidatePreImage(r.ImageA, r.PreImageA)
 	if err != nil {
-		return nil, util.ForwardError(util.ErrorConstRNG, "CalcCorrespondingValue", err)
+		return nil, util.ForwardError(errorDescription, err)
 	}
 
 	result, err := global.Xor(r.PreImageA, r.PreImageB)
 	if err != nil {
-		return nil, util.ForwardError(util.ErrorConstRNG, "CalcCorrespondingValue", err)
+		return nil, util.ForwardError(errorDescription, err)
 	}
 	return result, r.Validate(result)
 }
 
 // Validate value is same as CalcCorrespondingValue()
 func (r *RNG) Validate(value []byte) error {
+	errorDescription := util.ErrorInfo{FunctionName: "Validate", FileName: util.ErrorConstRNG}
+
 	err := global.ValidatePreImage(r.ImageA, r.PreImageA)
 	if err != nil {
-		return util.ForwardError(util.ErrorConstRNG, "Validate", err)
+		return util.ForwardError(errorDescription, err)
 	}
 
 	v, err := global.Xor(r.PreImageA, r.PreImageB)
 	if err != nil {
-		return util.ForwardError(util.ErrorConstRNG, "Validate", err)
+		return util.ForwardError(errorDescription, err)
 	}
 
 	if !bytes.Equal(value, v) {
-		return util.ThrowError(util.ErrorConstRNG, "Commit", fmt.Sprintf("given value %v doesn't match CalcCorrespondingValue() result", value))
+		return util.ThrowError(errorDescription, fmt.Sprintf("given value %v doesn't match CalcCorrespondingValue() result", value))
 	}
 
 	return nil

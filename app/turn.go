@@ -57,9 +57,5 @@ func (t *Turn) SetAllowed(possibleActions ...util.GeneralTypesOfActions) {
 }
 
 func (t *Turn) NextActor() {
-	if t.nextActor == 0 {
-		t.nextActor = 1
-	} else {
-		t.nextActor = 0
-	}
+	t.nextActor = (t.nextActor + 1) % util.NumPlayers
 }
