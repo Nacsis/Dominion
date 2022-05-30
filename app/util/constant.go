@@ -1,17 +1,47 @@
 package util
 
-const (
-	// Game Properties
-	NumPlayers          = 2
-	InitialHandSize     = 5
-	InitialDeckSize     = 8
-	InitialMoneyCards   = InitialDeckSize / 2
-	InitialVictoryCards = InitialDeckSize / 2
-	NumCardTypes        = 16
+type DeckResources uint8
+type GeneralTypesOfActions uint8
 
-	// Crypto / Framework
+const (
+	PlayableCards DeckResources = iota
+	DrawableCards
+	PurchasableCards
+	SpendableMoney
+)
+
+const (
+	GameInit GeneralTypesOfActions = iota
+	RngCommit
+	RngTouch
+	RngRelease
+	DrawCard
+	PlayCard
+	BuyCard
+	EndTurn
+	GameEnd // must remain at last position
+)
+
+const (
+	//------------------------ Game Properties ------------------------
+
+	NumPlayers = 2
+
+	//------------------------ Deck resources ------------------------
+
+	InitialMoneyCards   = 5
+	InitialVictoryCards = 3
+	InitialDeckSize     = InitialMoneyCards + InitialVictoryCards
+
+	InitialDrawResources  = 5
+	InitialPlayResources  = 1
+	InitialBuyResources   = 1
+	InitialMoneyResources = 0
+	DeckResourcesCount    = 4
+
+	//------------------------ Crypto / Framework ------------------------
+
 	HashSize uint8 = 20
-	RNGsize        = 3*HashSize + 1
 
 	// Treasure Values
 	MonValueCopper uint8 = 1
@@ -23,12 +53,14 @@ const (
 	CostsSilver uint8 = 3
 	CostsGold   uint8 = 6
 
-	// Error constant used for logging
-	ErrorConstRNG     = "rng"
-	ErrorConstDATA    = "data"
-	ErrorConstAPP     = "app"
-	ErrorConstChannel = "channel"
-	ErrorConstPILE    = "pile"
-	ErrorConstDECK    = "deck"
-	ErrorConstCARD    = "card"
+	//------------------------ Error const ------------------------
+
+	ErrorConstRNG        = "rng"
+	ErrorConstDATA       = "data"
+	ErrorConstAPP        = "app"
+	ErrorConstChannel    = "channel"
+	ErrorConstPILE       = "pile"
+	ErrorConstDECK       = "deck"
+	ErrorConstCARD       = "card"
+	ErrorConstCommitment = "commitment"
 )

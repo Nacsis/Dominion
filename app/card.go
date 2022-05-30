@@ -8,6 +8,7 @@ type Card struct {
 	CardType      CardType
 	Money         uint8
 	VictoryPoints uint8
+	PlayCost      uint8
 }
 
 type CardType uint8
@@ -30,20 +31,26 @@ func (c *Card) Of(dataBytes []byte) {
 	case MoneyCopper:
 		c.Money = util.MonValueCopper
 		c.CardType = MoneyCopper
+		c.PlayCost = 0
 	case MoneySilver:
 		c.Money = util.MonValueSilver
 		c.CardType = MoneySilver
+		c.PlayCost = 0
 	case MoneyGold:
 		c.Money = util.MonValueGold
 		c.CardType = MoneyGold
+		c.PlayCost = 0
 	case VictorySmall:
 		c.VictoryPoints = 1
 		c.CardType = VictorySmall
+		c.PlayCost = 0
 	case VictoryMid:
 		c.VictoryPoints = 2
 		c.CardType = VictoryMid
+		c.PlayCost = 0
 	case VictoryBig:
 		c.VictoryPoints = 3
 		c.CardType = VictoryBig
+		c.PlayCost = 0
 	}
 }

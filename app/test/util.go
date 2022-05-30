@@ -23,12 +23,14 @@ func pileSetUp() (app.Pile, []app.CardType) {
 	return app.Pile{Cards: cards}, cardTypes
 }
 
-func deckSetUp() (app.Deck, []app.CardType, []app.CardType, []app.CardType) {
+func deckSetUp() (app.Deck, []app.CardType, []app.CardType, []app.CardType, []app.CardType) {
 
 	main, cardTypesMain := pileSetUp()
 	hand, cardTypesHand := pileSetUp()
 	discard, discardTypesHand := pileSetUp()
-	return app.Deck{MainCardPile: main, HandCards: hand, DiscardPile: discard}, cardTypesMain, cardTypesHand, discardTypesHand
+	played, playedTypesHand := pileSetUp()
+
+	return app.Deck{MainPile: main, HandPile: hand, DiscardedPile: discard, PlayedPile: played}, cardTypesMain, cardTypesHand, discardTypesHand, playedTypesHand
 }
 func rngCommittedSetUp() app.RNG {
 	preImage := global.RandomBytes(util.HashSize)

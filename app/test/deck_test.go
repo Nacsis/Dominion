@@ -10,7 +10,8 @@ import (
 
 // Test_Deck_Serialization
 func Test_Deck_Serialization(t *testing.T) {
-	deck, _, _, _ := deckSetUp()
+	deck := app.Deck{}
+	deck.Init()
 
 	var bytes = deck.ToByte()
 
@@ -22,18 +23,20 @@ func Test_Deck_Serialization(t *testing.T) {
 
 // Test_Deck_Draw
 func Test_Deck_Draw(t *testing.T) {
-	deck, cardTypesMain, cardTypesHand, discardTypesHand := deckSetUp()
+	deck, cardTypesMain, cardTypesHand, discardTypesHand, playedTypesHand := deckSetUp()
 
 	err := deck.DrawOneCard(global.RandomBytes(util.HashSize))
 	assert.Nil(t, err)
-	assert.True(t, deck.MainCardPile.Size() == len(cardTypesMain)-1)
-	assert.True(t, deck.HandCards.Size() == len(cardTypesHand)+1)
-	assert.True(t, deck.DiscardPile.Size() == len(discardTypesHand))
+	assert.True(t, deck.MainPile.Size() == len(cardTypesMain)-1)
+	assert.True(t, deck.HandPile.Size() == len(cardTypesHand)+1)
+	assert.True(t, deck.DiscardedPile.Size() == len(discardTypesHand))
+	assert.True(t, deck.PlayedPile.Size() == len(playedTypesHand))
+
 	var difMain []app.CardType
 	indexDif := 0
 
 	for i := 0; i < len(cardTypesMain)-1; i++ {
-		if deck.MainCardPile.Cards[i].CardType != cardTypesMain[i+indexDif] {
+		if deck.MainPile.Cards[i].CardType != cardTypesMain[i+indexDif] {
 			difMain = append(difMain, cardTypesMain[i])
 			indexDif++
 		}
@@ -43,5 +46,5 @@ func Test_Deck_Draw(t *testing.T) {
 	}
 
 	assert.Len(t, difMain, 1)
-	assert.Equal(t, difMain[0], deck.HandCards.Cards[len(deck.HandCards.Cards)-1].CardType)
+	assert.Equal(t, difMain[0], deck.HandPile.Cards[len(deck.HandPile.Cards)-1].CardType)
 }

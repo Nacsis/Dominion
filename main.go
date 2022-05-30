@@ -64,6 +64,9 @@ func main() {
 
 	drawInitHand(appAlice, appBob)
 	log.Println("Alice drawn init hand")
+	appAlice.PlayCard(0)
+	log.Println("Alice played a card")
+
 	appAlice.EndTurn()
 	log.Println("Alice end turn")
 
@@ -95,6 +98,7 @@ func main() {
 
 func drawInitHand(drawer, other *client.DominionChannel) {
 	for i := 0; i < 5; i++ {
+		log.Println(i)
 		var alicePreimage = global.RandomBytes(util.HashSize)
 		drawer.RngCommit(alicePreimage)
 		other.RngTouch()

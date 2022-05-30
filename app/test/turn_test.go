@@ -8,7 +8,9 @@ import (
 
 // Test_Turn_Serialization
 func Test_Turn_Serialization(t *testing.T) {
-	turn := app.InitTurn(0)
+	turn := app.Turn{}
+
+	turn.Init(0)
 
 	bytes := turn.ToByte()
 

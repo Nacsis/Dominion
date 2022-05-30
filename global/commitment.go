@@ -20,10 +20,12 @@ func ToImage(preImage []byte) []byte {
 
 // ValidatePreImage check if preImage can be used to generate image
 func ValidatePreImage(image []byte, preImage []byte) error {
+	errorDescription := util.ErrorInfo{FunctionName: "DrawOneCard", FileName: util.ErrorConstCommitment}
+
 	h := sha1.New()
 	h.Write(preImage)
 	if !bytes.Equal(h.Sum(nil), image) {
-		return util.ThrowError("", "ValidatePreImage", fmt.Sprintf("preimage: %v is not valid for image: %v ", preImage, image))
+		return util.ThrowError(errorDescription, fmt.Sprintf("preimage: %v is not valid for image: %v ", preImage, image))
 	}
 	return nil
 }
@@ -37,8 +39,10 @@ func RandomBytes(size uint8) []byte {
 
 // Xor output xor of a and b
 func Xor(a, b []byte) ([]byte, error) {
+	errorDescription := util.ErrorInfo{FunctionName: "Xor", FileName: util.ErrorConstCommitment}
+
 	if len(a) != int(util.HashSize) || len(b) != int(util.HashSize) {
-		return nil, util.ThrowError("", "Xor", fmt.Sprintf("a or b has not the correct size of %v", util.HashSize))
+		return nil, util.ThrowError(errorDescription, fmt.Sprintf("a or b has not the correct size of %v", util.HashSize))
 	}
 	var c = make([]byte, util.HashSize)
 	for i := uint8(0); i < util.HashSize; i++ {

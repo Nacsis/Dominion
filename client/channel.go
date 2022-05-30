@@ -99,14 +99,33 @@ func (g *DominionChannel) DrawOneCard() {
 	}
 }
 
+// PlayCard draws one card to the hand pile. A full rng need to be performed before.
+func (g *DominionChannel) PlayCard(index uint8) {
+	errorDescription := util.ErrorInfo{FunctionName: "DrawOneCard", FileName: util.ErrorConstRNG}
+
+	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+		dominionApp, ok := state.App.(*app.DominionApp)
+		if !ok {
+			return util.ThrowError(errorDescription, fmt.Sprintf("App is in an invalid data format %T", dominionApp))
+		}
+
+		return dominionApp.PlayCard(state, g.ch.Idx(), index)
+	})
+	if err != nil {
+		panic(err) // We panic on error to keep the code simple.
+	}
+}
+
 //------------------------ General turn mechanics ------------------------
 
 // EndTurn switch the current actor and ends the game
 func (g *DominionChannel) EndTurn() {
+	errorDescription := util.ErrorInfo{FunctionName: "EndTurn", FileName: util.ErrorConstChannel}
+
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
-			return util.ThrowError(util.ErrorConstChannel, "EndTurn", fmt.Sprintf("App is in an invalid data format %T", dominionApp))
+			return util.ThrowError(errorDescription, fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
 		return dominionApp.EndTurn(state, g.ch.Idx())
@@ -120,10 +139,11 @@ func (g *DominionChannel) EndTurn() {
 
 // EndGame
 func (g *DominionChannel) EndGame() {
+	errorDescription := util.ErrorInfo{FunctionName: "EndTurn", FileName: util.ErrorConstChannel}
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
-			return util.ThrowError(util.ErrorConstChannel, "EndTurn", fmt.Sprintf("App is in an invalid data format %T", dominionApp))
+			return util.ThrowError(errorDescription, fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
 		return dominionApp.EndGame(state, g.ch.Idx())
