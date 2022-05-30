@@ -4,30 +4,45 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha1"
-	"errors"
+	"fmt"
+	"perun.network/perun-examples/app-channel/app/util"
 )
 
-const HashSize = 20
-
-func HashKeyPair() ([]byte, []byte) {
-	k := RandomString()
-	h := sha1.New()
-	h.Write(k)
-	return h.Sum(nil), k
-}
-func Valid(hToCheck []byte, kToCheck []byte) error {
-	h := sha1.New()
-	h.Write(kToCheck)
-	if bytes.Compare(h.Sum(nil), hToCheck) == 0 {
-		return nil
-	} else {
-		return errors.New("incorrect Preimage")
+// ToImage generate image out of preimage
+func ToImage(preImage []byte) []byte {
+	if uint8(len(preImage)) < util.HashSize {
+		//TODO Panic oder was auch immer
 	}
-
+	h := sha1.New()
+	h.Write(preImage)
+	return h.Sum(nil)
 }
 
-func RandomString() []byte {
-	token := make([]byte, HashSize)
-	rand.Read(token)
-	return token
+// ValidatePreImage check if preImage can be used to generate image
+func ValidatePreImage(image []byte, preImage []byte) error {
+	h := sha1.New()
+	h.Write(preImage)
+	if !bytes.Equal(h.Sum(nil), image) {
+		return util.ThrowError("", "ValidatePreImage", fmt.Sprintf("preimage: %v is not valid for image: %v ", preImage, image))
+	}
+	return nil
+}
+
+// RandomBytes of given size
+func RandomBytes(size uint8) []byte {
+	buf := make([]byte, size)
+	rand.Read(buf) // TODO ERROR handle
+	return buf
+}
+
+// Xor output xor of a and b
+func Xor(a, b []byte) ([]byte, error) {
+	if len(a) != int(util.HashSize) || len(b) != int(util.HashSize) {
+		return nil, util.ThrowError("", "Xor", fmt.Sprintf("a or b has not the correct size of %v", util.HashSize))
+	}
+	var c = make([]byte, util.HashSize)
+	for i := uint8(0); i < util.HashSize; i++ {
+		c[i] = a[i] ^ b[i]
+	}
+	return c, nil
 }

@@ -20,7 +20,9 @@ import (
 	ethwallet "perun.network/go-perun/backend/ethereum/wallet"
 	"perun.network/go-perun/wire"
 	"perun.network/perun-examples/app-channel/app"
+	"perun.network/perun-examples/app-channel/app/util"
 	"perun.network/perun-examples/app-channel/client"
+	"perun.network/perun-examples/app-channel/global"
 )
 
 const (
@@ -60,9 +62,23 @@ func main() {
 	appBob := bob.AcceptedChannel()
 	log.Println("Channel Open")
 
-	// Just a simple Actor switch
-	appAlice.SwitchActor()
-	log.Println("Actor switch performed")
+	drawInitHand(appAlice, appBob)
+	log.Println("Alice drawn init hand")
+	appAlice.EndTurn()
+	log.Println("Alice end turn")
+
+	drawInitHand(appBob, appAlice)
+	log.Println("bob drawn init hand")
+	appBob.EndTurn()
+	log.Println("bob end turn")
+
+	drawInitHand(appAlice, appBob)
+	log.Println("Alice drawn init hand")
+	appAlice.EndTurn()
+	log.Println("Alice end turn")
+
+	appAlice.EndGame()
+	log.Println("Alice end game")
 
 	// Payout.
 	appAlice.Settle()
@@ -75,4 +91,15 @@ func main() {
 	// Cleanup.
 	alice.Shutdown()
 	bob.Shutdown()
+}
+
+func drawInitHand(drawer, other *client.DominionChannel) {
+	for i := 0; i < 5; i++ {
+		var alicePreimage = global.RandomBytes(util.HashSize)
+		drawer.RngCommit(alicePreimage)
+		other.RngTouch()
+		drawer.RngRelease(alicePreimage)
+
+		drawer.DrawOneCard()
+	}
 }

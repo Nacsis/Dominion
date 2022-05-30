@@ -8,15 +8,16 @@ import (
 )
 
 type DominionAppData struct {
-	NextActor uint8
+	turn      Turn
 	CardDecks [util.NumPlayers]Deck // dynamic Card information
+	rng       RNG
 }
 
 // Encode encodes app data onto an io.Writer.
 func (d *DominionAppData) Encode(w io.Writer) error {
 
-	// Write next actor
-	err := util.WriteUInt8(w, d.NextActor)
+	// Write turn
+	err := util.Write(w, &d.turn)
 	if err != nil {
 		return errors.WithMessage(err, "writing actor")
 	}
@@ -25,38 +26,204 @@ func (d *DominionAppData) Encode(w io.Writer) error {
 	for i := 0; i < len(d.CardDecks); i++ {
 		err := util.Write(w, &d.CardDecks[i])
 		if err != nil {
-			return errors.WithMessage(err, "writing card")
+			return errors.WithMessage(err, "writing deck")
 		}
+	}
+
+	err = util.Write(w, &d.rng)
+	if err != nil {
+		return errors.WithMessage(err, "writing rng")
 	}
 	return nil
 }
 
-// Clone returns a deep copy of the app data.
+// Clone returns ImageA deep copy of the app data.
 func (d *DominionAppData) Clone() channel.Data {
 	_d := *d
 	return &_d
 }
 
-func (d *DominionAppData) switchActor(actorIdx channel.Index) {
-
-	if d.NextActor != util.Uint8safe(uint16(actorIdx)) {
-		panic("invalid actor")
-	}
-	d.NextActor += +1
-}
-
-func (a *DominionAppData) Init(firstActor channel.Index) error {
+func (d *DominionAppData) Init(firstActor channel.Index) error {
 	// Set first actor
-	a.NextActor = uint8(firstActor)
+	d.turn = InitTurn(uint8(firstActor))
 
 	// Set initial decks
 	for deckNum := 0; deckNum < util.NumPlayers; deckNum++ {
 		for i := 0; i < util.InitialMoneyCards; i++ {
-			a.CardDecks[deckNum].mainCardPile.cards = append(a.CardDecks[deckNum].mainCardPile.cards, CardOfType(MoneyCopper))
+
+			card := Card{}
+			card.Of([]byte{byte(MoneyCopper)}) // TODO Handle error
+			d.CardDecks[deckNum].MainCardPile.AddCard(card)
 		}
 		for i := 0; i < util.InitialVictoryCards; i++ {
-			a.CardDecks[deckNum].mainCardPile.cards = append(a.CardDecks[deckNum].mainCardPile.cards, CardOfType(VictorySmall))
+			card := Card{}
+			card.Of([]byte{byte(VictorySmall)}) // TODO Handle error
+			d.CardDecks[deckNum].MainCardPile.AddCard(card)
 		}
 	}
 	return nil
+}
+
+//------------------------ RNG ------------------------
+
+// RngCommit player who wants to DrawOneCard commit to an preimage by setting corresponding image
+func (d *DominionAppData) RngCommit(actorIdx channel.Index, image []byte) error {
+	//------ Checks ------
+	if d.turn.nextActor != uint8(actorIdx) {
+		return util.ThrowError(util.ErrorConstDATA, "RngCommit", "Wrong actor")
+	}
+	if !d.turn.allowed(RngCommit) {
+		return util.ThrowError(util.ErrorConstDATA, "RngCommit", "RngCommit is not allowed")
+	}
+
+	//------ Perform action ------
+	err := d.rng.Commit(image)
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "RngCommit", err)
+	}
+
+	//------ Update turn ------
+	d.turnAfter(RngCommit)
+
+	return nil
+}
+
+// RngTouch the player how doesn't DrawOneCard choose an image
+func (d *DominionAppData) RngTouch(actorIdx channel.Index) error {
+
+	//------ Checks ------
+	if d.turn.nextActor != uint8(actorIdx) {
+		return util.ThrowError(util.ErrorConstDATA, "RngTouch", "Actor can't touch for his own rng")
+	}
+	if !d.turn.allowed(RngTouch) {
+		return util.ThrowError(util.ErrorConstDATA, "RngCommit", "RngTouch is not allowed")
+	}
+
+	//------ Perform action ------
+	err := d.rng.Touch()
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "RngTouch", err)
+	}
+
+	//------ Update turn ------
+	d.turnAfter(RngTouch)
+
+	return nil
+}
+
+// RngRelease player who wants to DrawOneCard publish preimage for published image
+func (d *DominionAppData) RngRelease(actorIdx channel.Index, image []byte) error {
+
+	//------ Checks ------
+	if d.turn.nextActor != uint8(actorIdx) {
+		return util.ThrowError(util.ErrorConstDATA, "RngRelease", "Wrong actor")
+	}
+	if !d.turn.allowed(RngRelease) {
+		return util.ThrowError(util.ErrorConstDATA, "RngRelease", "RngTouch is not allowed")
+	}
+
+	//------ Perform action ------
+	err := d.rng.Release(image)
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "RngRelease", err)
+	}
+
+	//------ Update turn ------
+	d.turnAfter(RngRelease)
+
+	return nil
+}
+
+//------------------------ Drawing ------------------------
+
+// DrawOneCard draws one card to the hand pile. A full rng need to be performed before.
+func (d *DominionAppData) DrawOneCard(actorIdx channel.Index) error {
+	//------ Checks ------
+	if d.turn.nextActor != uint8(actorIdx) {
+		return util.ThrowError(util.ErrorConstDATA, "DrawOneCard", "Wrong actor")
+	}
+	if !d.turn.allowed(DrawCard) {
+		return util.ThrowError(util.ErrorConstDATA, "DrawOneCard", "DrawCard is not allowed")
+	}
+
+	//------ Perform action ------
+	value, err := d.rng.CalcCorrespondingValue()
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "DrawOneCard", err)
+	}
+
+	err = d.CardDecks[actorIdx].DrawOneCard(value)
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "DrawOneCard", err)
+	}
+	// Rng was used, therefore delete it
+	d.rng = RNG{}
+
+	//------ Update turn ------
+	d.turnAfter(DrawCard)
+
+	return nil
+}
+
+//------------------------ General turn mechanics ------------------------
+
+func (d *DominionAppData) EndTurn(actorIdx channel.Index) error {
+	//------ Checks ------
+	if d.turn.nextActor != uint8(actorIdx) {
+		return util.ThrowError(util.ErrorConstDATA, "EndTurn", "Wrong actor")
+	}
+	if !d.turn.allowed(EndTurn) {
+		return util.ThrowError(util.ErrorConstDATA, "EndTurn", "EndTurn is not allowed")
+	}
+
+	//------ Perform action ------
+	err := d.CardDecks[actorIdx].DiscardHandCards()
+	if err != nil {
+		return util.ForwardError(util.ErrorConstDATA, "EndTurn", err)
+	}
+
+	//------ Update turn ------
+	d.turnAfter(EndTurn)
+
+	return nil
+}
+
+// turnAfter generate turn state after performed action
+func (d *DominionAppData) turnAfter(at ActionTypes) {
+	switch at {
+	case RngCommit:
+		d.turn.performedAction = RngCommit
+		d.turn.SetAllowed(RngTouch)
+		d.turn.NextActor()
+		break
+	case RngTouch:
+		d.turn.performedAction = RngTouch
+		d.turn.SetAllowed(RngRelease)
+		d.turn.NextActor()
+		break
+	case RngRelease:
+		d.turn.performedAction = RngRelease
+		d.turn.SetAllowed(DrawCard)
+		break
+	case DrawCard:
+		d.turn.performedAction = DrawCard
+		var allowedActions []ActionTypes
+		if d.CardDecks[d.turn.nextActor].IsInitialHandDrawn() {
+			allowedActions = append(allowedActions, EndTurn)
+		} else {
+			allowedActions = append(allowedActions, RngCommit)
+		}
+		d.turn.SetAllowed(allowedActions...)
+		break
+	case EndTurn:
+		d.turn.performedAction = EndTurn
+		d.turn.SetAllowed(RngCommit)
+		d.turn.NextActor()
+		break
+	}
+
+}
+
+func (d *DominionAppData) EndGame(idx channel.Index) error {
+	return nil // TODO endGame check
 }
