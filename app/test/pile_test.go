@@ -33,29 +33,31 @@ func Test_Pile_ToByte(t *testing.T) {
 	assert.Equal(t, expectedBytes, pile.ToByte())
 }
 
+/*
 // Test_Pile_Resize
 func Test_Pile_Resize(t *testing.T) {
 	pile, cardTypes := pileSetUp()
 	pile.Cards[ranIntN(len(cardTypes)-1)] = app.Card{}
-	pile.ResizeCards()
+	pile._ResizeCards()
 	assert.Len(t, pile.Cards, len(cardTypes)-1)
-}
+}*/
 
 // Test_Pile_Add
 func Test_Pile_Add(t *testing.T) {
 	pile, cardTypes := pileSetUp()
-	pile.AddCard(cardOfType(app.CardType(ranIntN(5))))
+	pile.AddCardToPile(cardOfType(util.CardType(ranIntN(5))))
 	assert.Len(t, pile.Cards, len(cardTypes)+1)
 }
 
+/*
 // Test_Pile_SeedToIndex
 func Test_Pile_SeedToIndex(t *testing.T) {
 	pile, cardTypes := pileSetUp()
-	index, err := pile.SeedToIndex(global.RandomBytes(util.HashSize))
+	index, err := pile._SeedToIndex(global.RandomBytes(util.HashSize))
 	assert.Nil(t, err)
 	assert.True(t, len(cardTypes) > index)
 	assert.True(t, 0 <= index)
-}
+}*/
 
 // Test_Pile_Serialization
 func Test_Pile_Serialization(t *testing.T) {

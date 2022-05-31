@@ -22,6 +22,17 @@ const (
 	GameEnd // must remain at last position
 )
 
+type CardType uint8
+
+const (
+	Copper CardType = iota
+	Silver
+	Gold
+	VictorySmall
+	VictoryMid
+	VictoryBig
+)
+
 const (
 	//------------------------ Game Properties ------------------------
 
@@ -43,15 +54,27 @@ const (
 
 	HashSize uint8 = 20
 
-	// Treasure Values
-	MonValueCopper uint8 = 1
-	MonValueSilver uint8 = 2
-	MonValueGold   uint8 = 3
+	//------------------------ Card ------------------------
 
-	// Card costs
-	CostsCopper uint8 = 0
-	CostsSilver uint8 = 3
-	CostsGold   uint8 = 6
+	CopperMoneyValue uint8 = 1
+	SilverMoneyValue uint8 = 2
+	GoldMoneyValue   uint8 = 3
+
+	CopperCost uint8 = 1
+	SilverCost uint8 = 2
+	GoldCost   uint8 = 3
+
+	MoneyCardPlayCost uint8 = 0
+
+	VictorySmallVictoryValue uint8 = 1
+	VictoryMidVictoryValue   uint8 = 2
+	VictoryBigVictoryValue   uint8 = 3
+
+	VictorySmallCost uint8 = 1
+	VictoryMidCost   uint8 = 2
+	VictoryBigCost   uint8 = 6
+
+	VictoryCardPlayCost uint8 = 0
 
 	//------------------------ Error const ------------------------
 
@@ -61,6 +84,5 @@ const (
 	ErrorConstChannel    = "channel"
 	ErrorConstPILE       = "pile"
 	ErrorConstDECK       = "deck"
-	ErrorConstCARD       = "card"
 	ErrorConstCommitment = "commitment"
 )

@@ -67,7 +67,7 @@ func deployContracts(nodeURL string, chainID uint64, privateKey string) (adj, ah
 		panic(err)
 	}
 	// Deploy dominion App.
-	app, tx, _, err := dominionApp.DeployDominionApp(tops, cb)
+	appAddress, tx, _, err := dominionApp.DeployDominionApp(tops, cb)
 	if err != nil {
 		panic(err)
 	}
@@ -77,7 +77,7 @@ func deployContracts(nodeURL string, chainID uint64, privateKey string) (adj, ah
 		panic(err)
 	}
 
-	return adj, ah, app
+	return adj, ah, appAddress
 }
 
 // setupGameClient sets up a new client with the given parameters.
@@ -122,7 +122,7 @@ type balanceLogger struct {
 	ethClient *ethclient.Client
 }
 
-// newBalanceLogger creates a new balance logger.go for the specified ledger.
+// newBalanceLogger creates a new balance errorHandling.go for the specified ledger.
 func newBalanceLogger(chainURL string) balanceLogger {
 	c, err := ethclient.Dial(chainURL)
 	if err != nil {

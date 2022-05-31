@@ -75,11 +75,6 @@ func main() {
 	appBob.EndTurn()
 	log.Println("bob end turn")
 
-	drawInitHand(appAlice, appBob)
-	log.Println("Alice drawn init hand")
-	appAlice.EndTurn()
-	log.Println("Alice end turn")
-
 	appAlice.EndGame()
 	log.Println("Alice end game")
 

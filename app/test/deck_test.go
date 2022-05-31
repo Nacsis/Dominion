@@ -25,14 +25,14 @@ func Test_Deck_Serialization(t *testing.T) {
 func Test_Deck_Draw(t *testing.T) {
 	deck, cardTypesMain, cardTypesHand, discardTypesHand, playedTypesHand := deckSetUp()
 
-	err := deck.DrawOneCard(global.RandomBytes(util.HashSize))
+	err := deck.DrawCard(global.RandomBytes(util.HashSize))
 	assert.Nil(t, err)
-	assert.True(t, deck.MainPile.Size() == len(cardTypesMain)-1)
-	assert.True(t, deck.HandPile.Size() == len(cardTypesHand)+1)
-	assert.True(t, deck.DiscardedPile.Size() == len(discardTypesHand))
-	assert.True(t, deck.PlayedPile.Size() == len(playedTypesHand))
+	assert.True(t, deck.MainPile.Length() == len(cardTypesMain)-1)
+	assert.True(t, deck.HandPile.Length() == len(cardTypesHand)+1)
+	assert.True(t, deck.DiscardedPile.Length() == len(discardTypesHand))
+	assert.True(t, deck.PlayedPile.Length() == len(playedTypesHand))
 
-	var difMain []app.CardType
+	var difMain []util.CardType
 	indexDif := 0
 
 	for i := 0; i < len(cardTypesMain)-1; i++ {

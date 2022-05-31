@@ -9,6 +9,7 @@ type Turn struct {
 	possibleActions        [util.GameEnd]bool
 }
 
+// Init sets up initial Turn state
 func (t *Turn) Init(firstActor uint8) {
 	possibleActions := [util.GameEnd]bool{}
 	possibleActions[util.RngCommit] = true
@@ -19,6 +20,7 @@ func (t *Turn) Init(firstActor uint8) {
 	t.MandatoryPartFulfilled = false
 }
 
+// ToByte create a byte representation of Turn
 func (t *Turn) ToByte() []byte {
 	dataBytes := append([]byte{}, t.nextActor)
 	dataBytes = append(dataBytes, byte(t.performedAction))
@@ -33,6 +35,7 @@ func (t *Turn) ToByte() []byte {
 	return append([]byte{byte(len(dataBytes))}, dataBytes...)
 }
 
+// Of create Turn out of a bytes
 func (t *Turn) Of(dataBytes []byte) {
 	t.nextActor = dataBytes[0]
 	t.performedAction = util.GeneralTypesOfActions(dataBytes[1])
@@ -43,19 +46,4 @@ func (t *Turn) Of(dataBytes []byte) {
 	for _, k := range dataBytes[3:] {
 		t.possibleActions[k] = true
 	}
-}
-
-func (t *Turn) allowed(at util.GeneralTypesOfActions) bool {
-	return t.possibleActions[at]
-}
-
-func (t *Turn) SetAllowed(possibleActions ...util.GeneralTypesOfActions) {
-	t.possibleActions = [util.GameEnd]bool{}
-	for _, v := range possibleActions {
-		t.possibleActions[v] = true
-	}
-}
-
-func (t *Turn) NextActor() {
-	t.nextActor = (t.nextActor + 1) % util.NumPlayers
 }

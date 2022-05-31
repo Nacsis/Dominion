@@ -128,7 +128,7 @@ func (c *AppClient) OpenAppChannel(peer wire.Address) *DominionChannel {
 	challengeDuration := uint64(10) // On-chain challenge duration in seconds.
 
 	firstActorIdx := channel.Index(0)
-	withApp := client.WithApp(c.app, c.app.InitData(firstActorIdx))
+	withApp := client.WithApp(c.app, c.app.Init(firstActorIdx))
 
 	proposal, err := client.NewLedgerChannelProposal(
 		challengeDuration,
