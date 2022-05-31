@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"perun.network/perun-examples/app-channel/app/util"
 )
 
@@ -32,4 +33,16 @@ func (s *Stock) TakeOffOneInitialDeck() (Pile, error) {
 	s.CardAmounts[util.Copper] -= util.InitialMoneyCards
 	s.CardAmounts[util.VictorySmall] -= util.InitialVictoryCards
 	return pile, nil
+}
+
+// TakeOffCard takes off card of given CardType
+func (s *Stock) TakeOffCard(cardType util.CardType) (Card, error) {
+	errorInfo := util.ErrorInfo{FunctionName: "TakeOffOneInitialDeck", FileName: util.ErrorConstStock}
+	if s.CardAmounts[cardType] <= 0 {
+		return Card{}, errorInfo.ThrowError(fmt.Sprint("No more cards of Type %T available", cardType))
+	}
+	s.CardAmounts[cardType]--
+	card := Card{}
+	card.Of([]byte{byte(cardType)})
+	return card, nil
 }

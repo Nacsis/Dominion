@@ -66,6 +66,8 @@ func main() {
 	log.Println("Alice drawn init hand")
 	appAlice.PlayCard(0)
 	log.Println("Alice played a card")
+	appAlice.BuyCard(util.Copper)
+	log.Println("Alice Bought a card ", util.Copper)
 
 	appAlice.EndTurn()
 	log.Println("Alice end turn")

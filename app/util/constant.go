@@ -68,9 +68,9 @@ const (
 	SilverMoneyValue uint8 = 2
 	GoldMoneyValue   uint8 = 3
 
-	CopperCost uint8 = 1
-	SilverCost uint8 = 2
-	GoldCost   uint8 = 3
+	CopperCost uint8 = 0
+	SilverCost uint8 = 1
+	GoldCost   uint8 = 2
 
 	MoneyCardPlayCost uint8 = 0
 

@@ -102,6 +102,28 @@ func (d *Deck) PlayCardWithIndex(index uint) error {
 	return nil
 }
 
+// BoughtCard buy one card
+func (d *Deck) BoughtCard(card Card) error {
+	errorInfo := util.ErrorInfo{FunctionName: "BoughtCard", FileName: util.ErrorConstDECK}
+	if d.Resources[util.SpendableMoney] < card.BuyCost {
+		return errorInfo.ThrowError("Not enough spendable money available")
+	}
+	if !d.IsBuyActionPossible() {
+		return errorInfo.ThrowError("Not enough buy actions available")
+	}
+
+	d.Resources[util.SpendableMoney] -= card.BuyCost
+	d.Resources[util.PurchasableCards] -= 1
+
+	err := d.DiscardedPile.AddCardToPile(card)
+
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
+
+	return nil
+}
+
 // IsInitialHandDrawn true if initial hand was fully drawn
 func (d *Deck) IsInitialHandDrawn() bool {
 	return d.Resources[util.DrawableCards] == 0 && d.PlayedPile.Length() == 0 && d.HandPile.Length() == util.InitialDrawResources

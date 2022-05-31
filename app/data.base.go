@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"perun.network/go-perun/channel"
 	"perun.network/perun-examples/app-channel/app/util"
 )
@@ -178,8 +177,12 @@ func (d *DominionAppData) BuyCard(actorIdx channel.Index, cardType util.CardType
 	}
 
 	//------ Perform action ------
-	// TODO BUY ACTION
-	err := fmt.Errorf("")
+	card, err := d.stock.TakeOffCard(cardType)
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
+
+	err = d.CardDecks[d.turn.nextActor].BoughtCard(card)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
