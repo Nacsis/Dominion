@@ -93,6 +93,22 @@ func (a *DominionApp) PlayCard(s *channel.State, actorIdx channel.Index, index u
 	return nil
 }
 
+// BuyCard Buy one card for given CardType.
+func (a *DominionApp) BuyCard(s *channel.State, actorIdx channel.Index, cardType util.CardType) error {
+	errorInfo := util.ErrorInfo{FunctionName: "BuyCard", FileName: util.ErrorConstAPP}
+
+	dominionAppData, ok := s.Data.(*DominionAppData)
+	if !ok {
+		return errorInfo.ThrowError(fmt.Sprintf("BuyCard is in an invalid data format %T", dominionAppData))
+	}
+
+	err := dominionAppData.BuyCard(actorIdx, cardType)
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
+	return nil
+}
+
 //------------------------ Rng ------------------------
 
 // RngCommit set an image for rng

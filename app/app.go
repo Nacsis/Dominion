@@ -35,6 +35,12 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 		return nil, errorInfo.ForwardError(err)
 	}
 
+	// Read stock
+	err = util.ReadObject(r, &appData.stock)
+	if err != nil {
+		return nil, errorInfo.ForwardError(err)
+	}
+
 	// Read decks
 	for deckIndex := 0; deckIndex < util.NumPlayers; deckIndex++ {
 		err := util.ReadObject(r, &appData.CardDecks[deckIndex])

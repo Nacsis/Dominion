@@ -56,6 +56,14 @@ const (
 
 	//------------------------ Card ------------------------
 
+	CardTypeCount                  = 6
+	CopperInitialStock       uint8 = 30
+	SilverInitialStock       uint8 = 30
+	GoldInitialStock         uint8 = 30
+	VictorySmallInitialStock uint8 = 30
+	VictoryMidInitialStock   uint8 = 30
+	VictoryBigInitialStock   uint8 = 30
+
 	CopperMoneyValue uint8 = 1
 	SilverMoneyValue uint8 = 2
 	GoldMoneyValue   uint8 = 3
@@ -85,4 +93,5 @@ const (
 	ErrorConstPILE       = "pile"
 	ErrorConstDECK       = "deck"
 	ErrorConstCommitment = "commitment"
+	ErrorConstStock      = "stock"
 )

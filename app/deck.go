@@ -55,28 +55,8 @@ func (d *Deck) Of(dataBytes []byte) {
 }
 
 // Init sets up initial Deck state
-func (d *Deck) Init() error {
-	errorInfo := util.ErrorInfo{FunctionName: "Init", FileName: util.ErrorConstDECK}
-	for i := 0; i < util.InitialMoneyCards; i++ {
-
-		card := Card{}
-		card.Of([]byte{byte(util.Copper)}) // TODO Handle error
-		err := d.MainPile.AddCardToPile(card)
-		if err != nil {
-			return errorInfo.ForwardError(err)
-		}
-	}
-	for i := 0; i < util.InitialVictoryCards; i++ {
-		card := Card{}
-		card.Of([]byte{byte(util.VictorySmall)}) // TODO Handle error
-		err := d.MainPile.AddCardToPile(card)
-		if err != nil {
-			return errorInfo.ForwardError(err)
-		}
-	}
-	if d.HandPile.Length() > 0 || d.DiscardedPile.Length() > 0 || d.PlayedPile.Length() > 0 {
-
-	}
+func (d *Deck) Init(initialMainPile Pile) error {
+	d.MainPile = initialMainPile
 	d.HandPile.Init()
 	d.DiscardedPile.Init()
 	d.PlayedPile.Init()

@@ -39,7 +39,7 @@ func (g *DominionChannel) Settle() {
 
 // RngCommit player who wants to DrawOneCard commit to an preimage by setting corresponding image
 func (g *DominionChannel) RngCommit(preImage []byte) {
-	errorInfo := util.ErrorInfo{FunctionName: "RngCommit", FileName: util.ErrorConstRNG}
+	errorInfo := util.ErrorInfo{FunctionName: "RngCommit", FileName: util.ErrorConstChannel}
 
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
@@ -56,7 +56,7 @@ func (g *DominionChannel) RngCommit(preImage []byte) {
 
 // RngTouch the player how doesn't DrawOneCard choose an image
 func (g *DominionChannel) RngTouch() {
-	errorInfo := util.ErrorInfo{FunctionName: "RngTouch", FileName: util.ErrorConstRNG}
+	errorInfo := util.ErrorInfo{FunctionName: "RngTouch", FileName: util.ErrorConstChannel}
 
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
@@ -73,7 +73,7 @@ func (g *DominionChannel) RngTouch() {
 
 // RngRelease player who wants to DrawOneCard publish preimage for published image
 func (g *DominionChannel) RngRelease(preImage []byte) {
-	errorInfo := util.ErrorInfo{FunctionName: "RngRelease", FileName: util.ErrorConstRNG}
+	errorInfo := util.ErrorInfo{FunctionName: "RngRelease", FileName: util.ErrorConstChannel}
 
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
@@ -92,7 +92,7 @@ func (g *DominionChannel) RngRelease(preImage []byte) {
 
 // DrawOneCard draws one card to the hand pile. A full rng need to be performed before.
 func (g *DominionChannel) DrawOneCard() {
-	errorInfo := util.ErrorInfo{FunctionName: "DrawCard", FileName: util.ErrorConstRNG}
+	errorInfo := util.ErrorInfo{FunctionName: "DrawCard", FileName: util.ErrorConstChannel}
 
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
@@ -107,9 +107,9 @@ func (g *DominionChannel) DrawOneCard() {
 	}
 }
 
-// PlayCard draws one card to the hand pile. A full rng need to be performed before.
+// PlayCard draws one card to the hand pile.
 func (g *DominionChannel) PlayCard(index uint8) {
-	errorInfo := util.ErrorInfo{FunctionName: "DrawCard", FileName: util.ErrorConstRNG}
+	errorInfo := util.ErrorInfo{FunctionName: "PlayCard", FileName: util.ErrorConstChannel}
 
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
@@ -118,6 +118,23 @@ func (g *DominionChannel) PlayCard(index uint8) {
 		}
 
 		return dominionApp.PlayCard(state, g.ch.Idx(), index)
+	})
+	if err != nil {
+		panic(err) // We panic on error to keep the code simple.
+	}
+}
+
+// BuyCard Buy one card for given CardType.
+func (g *DominionChannel) BuyCard(cardType util.CardType) {
+	errorInfo := util.ErrorInfo{FunctionName: "BuyCard", FileName: util.ErrorConstChannel}
+
+	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+		dominionApp, ok := state.App.(*app.DominionApp)
+		if !ok {
+			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
+		}
+
+		return dominionApp.BuyCard(state, g.ch.Idx(), cardType)
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"perun.network/go-perun/channel"
 	"perun.network/perun-examples/app-channel/app/util"
 )
@@ -69,6 +70,10 @@ func (d *DominionAppData) _TurnAfter(at util.GeneralTypesOfActions) {
 		break
 	case util.PlayCard:
 		d.turn.performedAction = util.PlayCard
+		allowedActions := d._GetAllowedDeckActions()
+		allowedActions = append(allowedActions, util.EndTurn)
+	case util.BuyCard:
+		d.turn.performedAction = util.BuyCard
 		allowedActions := d._GetAllowedDeckActions()
 		allowedActions = append(allowedActions, util.EndTurn)
 	case util.EndTurn:
@@ -156,6 +161,31 @@ func (d *DominionAppData) PlayCard(actorIdx channel.Index, index uint8) error {
 
 	//------ Update turn ------
 	d._TurnAfter(util.PlayCard)
+
+	return nil
+}
+
+// BuyCard Buy one card for given CardType.
+func (d *DominionAppData) BuyCard(actorIdx channel.Index, cardType util.CardType) error {
+	errorInfo := util.ErrorInfo{FunctionName: "BuyCard", FileName: util.ErrorConstDATA}
+
+	//------ Checks ------
+	if d.turn.nextActor != uint8(actorIdx) {
+		return errorInfo.ThrowError("Wrong actor")
+	}
+	if !d.turn.IsActionAllowed(util.BuyCard) {
+		return errorInfo.ThrowError("BuyCard is not IsActionAllowed")
+	}
+
+	//------ Perform action ------
+	// TODO BUY ACTION
+	err := fmt.Errorf("")
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
+
+	//------ Update turn ------
+	d._TurnAfter(util.BuyCard)
 
 	return nil
 }

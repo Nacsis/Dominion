@@ -8,6 +8,7 @@ import (
 
 type DominionAppData struct {
 	turn      Turn
+	stock     Stock
 	CardDecks [util.NumPlayers]Deck
 	rng       RNG
 }
@@ -18,6 +19,12 @@ func (d *DominionAppData) Encode(w io.Writer) error {
 
 	// Encode turn
 	err := util.Write(w, &d.turn)
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
+
+	// Encode stock
+	err = util.Write(w, &d.stock)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
@@ -52,16 +59,22 @@ func (d *DominionAppData) Init(firstActor channel.Index) error {
 	// Init Turn
 	d.turn.Init(uint8(firstActor))
 
+	// Init Stock
+	d.stock.Init()
+
 	// Init decks
 	for deckNum := 0; deckNum < util.NumPlayers; deckNum++ {
-		err := d.CardDecks[deckNum].Init()
+		pile, err := d.stock.TakeOffOneInitialDeck()
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+
+		err = d.CardDecks[deckNum].Init(pile)
 		if err != nil {
 			return errorInfo.ForwardError(err)
 		}
 	}
-
-	// Init rng
-	//TODO init rng
+	d.rng.Init()
 
 	return nil
 }
