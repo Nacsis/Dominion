@@ -16,9 +16,8 @@ func (p *Pile) DrawCardBasedOnSeed(seed []byte) (Card, error) {
 	}
 
 	card := p.Cards[index]
-	p.Cards[index] = Card{}
 
-	err = p._ResizeCards()
+	err = p._ResizeCardsWithOutIndex(index)
 	if err != nil {
 		// TODO Rollback ?
 		return Card{}, errorInfo.ForwardError(err)
@@ -36,9 +35,8 @@ func (p *Pile) DrawCardWithIndex(index uint) (Card, error) {
 	}
 
 	card := p.Cards[index]
-	p.Cards[index] = Card{}
 
-	err := p._ResizeCards()
+	err := p._ResizeCardsWithOutIndex(int(index))
 	if err != nil {
 		return Card{}, errorInfo.ForwardError(err)
 	}
@@ -69,13 +67,18 @@ func (p *Pile) _SeedToIndex(seed []byte) (int, error) {
 	return rand.Intn(len(p.Cards)), nil
 }
 
-// _ResizeCards remove gaps in Cards array
-func (p *Pile) _ResizeCards() error {
+// _ResizeCardsWithOutIndex remove gaps in Cards array
+func (p *Pile) _ResizeCardsWithOutIndex(index int) error {
 	cards := make([]Card, 0)
 
 	for i := 0; i < len(p.Cards); i++ {
-		if (p.Cards[i] != Card{}) {
-			cards = append(cards, []Card{p.Cards[i]}...)
+		if i != index {
+			//This looks stupid but I think there is a problem with the local validation of a transaction.
+			//I didn't really get it but looks like the fromdata and  todata use same shared memory.
+			//Therefore create we need to create a new object  new object instead of the object it self
+			card := Card{}
+			card.Of([]byte{byte(p.Cards[i].CardType)})
+			cards = append(cards, card)
 		}
 	}
 
@@ -101,7 +104,7 @@ func (p *Pile) AddCardToPile(card Card) error {
 		return errorInfo.ThrowError("given card was empty")
 	}
 
-	p.Cards = append(p.Cards, []Card{card}...)
+	p.Cards = append(p.Cards, card)
 	return nil
 }
 

@@ -5,16 +5,16 @@ import (
 	"perun.network/perun-examples/app-channel/app/util"
 )
 
-// EndTurn ends current turn by switching actors
+// EndTurn ends current Turn by switching actors
 func (d *DominionAppData) EndTurn(actorIdx channel.Index) error {
 	errorInfo := util.ErrorInfo{FunctionName: "EndTurn", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
-	if d.turn.nextActor != uint8(actorIdx) {
-		return errorInfo.ThrowError("Wrong actor")
+	if d.Turn.NextActor != uint8(actorIdx) {
+		return errorInfo.ThrowError("Wrong Actor")
 	}
-	if !d.turn.IsActionAllowed(util.EndTurn) {
-		return errorInfo.ThrowError("EndTurn is not IsActionAllowed")
+	if !d.Turn.IsActionAllowed(util.EndTurn) {
+		return errorInfo.ThrowError("EndTurn is not an allowed action")
 	}
 
 	//------ Perform action ------
@@ -26,63 +26,73 @@ func (d *DominionAppData) EndTurn(actorIdx channel.Index) error {
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
+	err = d.CardDecks[actorIdx].ResetResources()
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
 
-	//------ Update turn ------
+	//------ Update Turn ------
 	d._TurnAfter(util.EndTurn)
 
 	return nil
 }
 
-// _TurnAfter generate turn state after performed action
+// _TurnAfter generate Turn state after performed action
 func (d *DominionAppData) _TurnAfter(at util.GeneralTypesOfActions) {
 	switch at {
 	case util.RngCommit:
-		d.turn.performedAction = util.RngCommit
-		d.turn.SetAllowed(util.RngTouch)
-		d.turn.SetNextActor()
+		d.Turn.PerformedAction = util.RngCommit
+		d.Turn.SetAllowed(util.RngTouch)
+		d.Turn.SetNextActor()
 		break
 	case util.RngTouch:
-		d.turn.performedAction = util.RngTouch
-		d.turn.SetAllowed(util.RngRelease)
-		d.turn.SetNextActor()
+		d.Turn.PerformedAction = util.RngTouch
+		d.Turn.SetAllowed(util.RngRelease)
+		d.Turn.SetNextActor()
 		break
 	case util.RngRelease:
-		d.turn.performedAction = util.RngRelease
-		d.turn.SetAllowed(util.DrawCard)
+		d.Turn.PerformedAction = util.RngRelease
+		d.Turn.SetAllowed(util.DrawCard)
 		break
 	case util.DrawCard:
-		d.turn.performedAction = util.DrawCard
+		d.Turn.PerformedAction = util.DrawCard
 		var allowedActions []util.GeneralTypesOfActions
 
-		if !d.turn.MandatoryPartFulfilled && d.CardDecks[d.turn.nextActor].IsInitialHandDrawn() {
-			d.turn.MandatoryPartFulfilled = true
+		if !d.Turn.MandatoryPartFulfilled && d.CardDecks[d.Turn.NextActor].IsInitialHandDrawn() {
+			d.Turn.MandatoryPartFulfilled = true
 		}
 
-		if d.turn.MandatoryPartFulfilled {
+		if d.Turn.MandatoryPartFulfilled {
 			allowedActions = d._GetAllowedDeckActions()
 			allowedActions = append(allowedActions, util.EndTurn)
 		} else {
 			allowedActions = []util.GeneralTypesOfActions{util.RngCommit}
 		}
 
-		d.turn.SetAllowed(allowedActions...)
+		d.Turn.SetAllowed(allowedActions...)
 		break
 	case util.PlayCard:
-		d.turn.performedAction = util.PlayCard
+		d.Turn.PerformedAction = util.PlayCard
 		allowedActions := d._GetAllowedDeckActions()
 		allowedActions = append(allowedActions, util.EndTurn)
-		d.turn.SetAllowed(allowedActions...)
+		d.Turn.SetAllowed(allowedActions...)
 		break
 	case util.BuyCard:
-		d.turn.performedAction = util.BuyCard
+		d.Turn.PerformedAction = util.BuyCard
 		allowedActions := d._GetAllowedDeckActions()
 		allowedActions = append(allowedActions, util.EndTurn)
-		d.turn.SetAllowed(allowedActions...)
+		d.Turn.SetAllowed(allowedActions...)
 		break
 	case util.EndTurn:
-		d.turn.performedAction = util.EndTurn
-		d.turn.SetAllowed(util.RngCommit)
-		d.turn.SetNextActor()
+		d.Turn.PerformedAction = util.EndTurn
+		d.Turn.MandatoryPartFulfilled = false
+		d.Turn.SetAllowed(util.RngCommit)
+		d.Turn.SetNextActor()
+		break
+	case util.GameEnd:
+		d.Turn.PerformedAction = util.GameEnd
+		d.Turn.MandatoryPartFulfilled = false
+		d.Turn.SetAllowed()
 		break
 	}
 }
@@ -91,7 +101,7 @@ func (d *DominionAppData) _TurnAfter(at util.GeneralTypesOfActions) {
 func (d *DominionAppData) _GetAllowedDeckActions() []util.GeneralTypesOfActions {
 
 	var allowedActions []util.GeneralTypesOfActions
-	currentDeck := d.CardDecks[d.turn.nextActor]
+	currentDeck := d.CardDecks[d.Turn.NextActor]
 	if currentDeck.IsPlayActionPossible() {
 		allowedActions = append(allowedActions, util.PlayCard)
 	}
@@ -107,26 +117,27 @@ func (d *DominionAppData) _GetAllowedDeckActions() []util.GeneralTypesOfActions 
 
 // EndGame ends game
 func (d *DominionAppData) EndGame(idx channel.Index) error {
-	return nil // TODO end game check
+	d._TurnAfter(util.GameEnd)
+	return nil
 }
 
 //------------------------ Decks ------------------------
 
 // DrawCard draws one card to the hand pile.
-// A rng need to be performed before.
+// A Rng need to be performed before.
 func (d *DominionAppData) DrawCard(actorIdx channel.Index) error {
 	errorInfo := util.ErrorInfo{FunctionName: "DrawCard", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
-	if d.turn.nextActor != uint8(actorIdx) {
-		return errorInfo.ThrowError("Wrong actor")
+	if d.Turn.NextActor != uint8(actorIdx) {
+		return errorInfo.ThrowError("Wrong Actor")
 	}
-	if !d.turn.IsActionAllowed(util.DrawCard) {
-		return errorInfo.ThrowError("DrawCard is not IsActionAllowed")
+	if !d.Turn.IsActionAllowed(util.DrawCard) {
+		return errorInfo.ThrowError("DrawCard is not an allowed action")
 	}
 
 	//------ Perform action ------
-	value, err := d.rng.RNGValue()
+	value, err := d.Rng.RNGValue()
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
@@ -136,9 +147,9 @@ func (d *DominionAppData) DrawCard(actorIdx channel.Index) error {
 		return errorInfo.ForwardError(err)
 	}
 	// Rng was used, therefore delete it
-	d.rng = RNG{}
+	d.Rng = RNG{}
 
-	//------ Update turn ------
+	//------ Update Turn ------
 	d._TurnAfter(util.DrawCard)
 
 	return nil
@@ -149,11 +160,11 @@ func (d *DominionAppData) PlayCard(actorIdx channel.Index, index uint8) error {
 	errorInfo := util.ErrorInfo{FunctionName: "PlayCard", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
-	if d.turn.nextActor != uint8(actorIdx) {
-		return errorInfo.ThrowError("Wrong actor")
+	if d.Turn.NextActor != uint8(actorIdx) {
+		return errorInfo.ThrowError("Wrong Actor")
 	}
-	if !d.turn.IsActionAllowed(util.PlayCard) {
-		return errorInfo.ThrowError("PlayCard is not IsActionAllowed")
+	if !d.Turn.IsActionAllowed(util.PlayCard) {
+		return errorInfo.ThrowError("PlayCard is not an allowed action")
 	}
 
 	//------ Perform action ------
@@ -162,7 +173,7 @@ func (d *DominionAppData) PlayCard(actorIdx channel.Index, index uint8) error {
 		return errorInfo.ForwardError(err)
 	}
 
-	//------ Update turn ------
+	//------ Update Turn ------
 	d._TurnAfter(util.PlayCard)
 
 	return nil
@@ -173,25 +184,25 @@ func (d *DominionAppData) BuyCard(actorIdx channel.Index, cardType util.CardType
 	errorInfo := util.ErrorInfo{FunctionName: "BuyCard", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
-	if d.turn.nextActor != uint8(actorIdx) {
-		return errorInfo.ThrowError("Wrong actor")
+	if d.Turn.NextActor != uint8(actorIdx) {
+		return errorInfo.ThrowError("Wrong Actor")
 	}
-	if !d.turn.IsActionAllowed(util.BuyCard) {
-		return errorInfo.ThrowError("BuyCard is not IsActionAllowed")
+	if !d.Turn.IsActionAllowed(util.BuyCard) {
+		return errorInfo.ThrowError("BuyCard is not an allowed action")
 	}
 
 	//------ Perform action ------
-	card, err := d.stock.TakeOffCard(cardType)
+	card, err := d.Stock.TakeOffCard(cardType)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
 
-	err = d.CardDecks[d.turn.nextActor].BoughtCard(card)
+	err = d.CardDecks[d.Turn.NextActor].BoughtCard(card)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
 
-	//------ Update turn ------
+	//------ Update Turn ------
 	d._TurnAfter(util.BuyCard)
 
 	return nil
@@ -199,51 +210,51 @@ func (d *DominionAppData) BuyCard(actorIdx channel.Index, cardType util.CardType
 
 //------------------------ Rng ------------------------
 
-// RngCommit set an image for rng
+// RngCommit set an image for Rng
 // Players who want to draw a card need to start by committing to a preimage
 func (d *DominionAppData) RngCommit(actorIdx channel.Index, image []byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "RngCommit", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
-	if d.turn.nextActor != uint8(actorIdx) {
-		return errorInfo.ThrowError("Wrong actor")
+	if d.Turn.NextActor != uint8(actorIdx) {
+		return errorInfo.ThrowError("Wrong Actor")
 	}
-	if !d.turn.IsActionAllowed(util.RngCommit) {
-		return errorInfo.ThrowError("RngCommit is not IsActionAllowed")
+	if !d.Turn.IsActionAllowed(util.RngCommit) {
+		return errorInfo.ThrowError("RngCommit is not an allowed action")
 	}
 
 	//------ Perform action ------
-	err := d.rng.Commit(image)
+	err := d.Rng.Commit(image)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
 
-	//------ Update turn ------
+	//------ Update Turn ------
 	d._TurnAfter(util.RngCommit)
 
 	return nil
 }
 
-// RngTouch set a second preimage for rng
+// RngTouch set a second preimage for Rng
 // Players need accept the set image by selecting a second preimage
 func (d *DominionAppData) RngTouch(actorIdx channel.Index) error {
 	errorInfo := util.ErrorInfo{FunctionName: "RngTouch", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
-	if d.turn.nextActor != uint8(actorIdx) {
-		return errorInfo.ThrowError("Actor can't touch for his own rng")
+	if d.Turn.NextActor != uint8(actorIdx) {
+		return errorInfo.ThrowError("Actor can't touch for his own Rng")
 	}
-	if !d.turn.IsActionAllowed(util.RngTouch) {
-		return errorInfo.ThrowError("RngTouch is not IsActionAllowed")
+	if !d.Turn.IsActionAllowed(util.RngTouch) {
+		return errorInfo.ThrowError("RngTouch is not an allowed action")
 	}
 
 	//------ Perform action ------
-	err := d.rng.Touch()
+	err := d.Rng.Touch()
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
 
-	//------ Update turn ------
+	//------ Update Turn ------
 	d._TurnAfter(util.RngTouch)
 
 	return nil
@@ -255,20 +266,20 @@ func (d *DominionAppData) RngRelease(actorIdx channel.Index, image []byte) error
 	errorInfo := util.ErrorInfo{FunctionName: "RngRelease", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
-	if d.turn.nextActor != uint8(actorIdx) {
-		return errorInfo.ThrowError("Wrong actor")
+	if d.Turn.NextActor != uint8(actorIdx) {
+		return errorInfo.ThrowError("Wrong Actor")
 	}
-	if !d.turn.IsActionAllowed(util.RngRelease) {
-		return errorInfo.ThrowError("RngRelease is not IsActionAllowed")
+	if !d.Turn.IsActionAllowed(util.RngRelease) {
+		return errorInfo.ThrowError("RngRelease is not an allowed action")
 	}
 
 	//------ Perform action ------
-	err := d.rng.Release(image)
+	err := d.Rng.Release(image)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
 
-	//------ Update turn ------
+	//------ Update Turn ------
 	d._TurnAfter(util.RngRelease)
 
 	return nil

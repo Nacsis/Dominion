@@ -6,6 +6,7 @@ import (
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/wallet"
 	"perun.network/perun-examples/app-channel/app/util"
+	"reflect"
 )
 
 type DominionApp struct {
@@ -29,14 +30,14 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 
 	appData := DominionAppData{}
 
-	// Read turn
-	err := util.ReadObject(r, &appData.turn)
+	// Read Turn
+	err := util.ReadObject(r, &appData.Turn)
 	if err != nil {
 		return nil, errorInfo.ForwardError(err)
 	}
 
-	// Read stock
-	err = util.ReadObject(r, &appData.stock)
+	// Read Stock
+	err = util.ReadObject(r, &appData.Stock)
 	if err != nil {
 		return nil, errorInfo.ForwardError(err)
 	}
@@ -50,7 +51,7 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 	}
 
 	// Read RNG
-	err = util.ReadObject(r, &appData.rng)
+	err = util.ReadObject(r, &appData.Rng)
 	if err != nil {
 		return nil, errorInfo.ForwardError(err)
 	}
@@ -75,7 +76,7 @@ func (a *DominionApp) ValidTransition(params *channel.Params, from, to *channel.
 	}
 
 	// Format of toData is valid
-	toData, ok := from.Data.(*DominionAppData)
+	toData, ok := to.Data.(*DominionAppData)
 	if !ok {
 		return errorInfo.ThrowError(fmt.Sprintf("toData is in an invalid data format %T", toData))
 	}
@@ -85,27 +86,11 @@ func (a *DominionApp) ValidTransition(params *channel.Params, from, to *channel.
 		return errorInfo.ThrowError(fmt.Sprintf("Player count is not correct. should be %v but is %v", util.NumPlayers, len(params.Parts)))
 	}
 
-	// TODO State Validation
+	err = a._ValidState(*fromData, *toData, idx)
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
 	// TODO Check if final state is reached
-	/*
-		fromDataClone := &(*fromData)
-		switch toData.turn.performedAction {
-		case util.RngCommit:
-			dumPreImage := global.RandomBytes(util.HashSize)
-			err = fromDataClone.RngCommit(idx, dumPreImage)
-			if err != nil {
-				return errorInfo.ForwardError( err)
-			}
-			fromDataClone.RngCommit(idx, dumPreImage)
-
-			// replace dummy
-			fromDataClone.rng.ImageA = toData.rng.ImageA
-
-			if fromDataClone == toData {
-				return errorInfo.ThrowError( "State transition could not be replicated for RngCommit")
-			}
-		}*/
-
 	return nil
 }
 
@@ -130,9 +115,20 @@ func (a *DominionApp) ValidInit(p *channel.Params, s *channel.State) error {
 	}
 
 	// Next player value is in range of player count
-	if appdata.turn.nextActor >= util.NumPlayers {
-		return errorInfo.ThrowError(fmt.Sprintf("Next actor is not valid. Should be smaller than %v but is %v", util.NumPlayers, appdata.turn.nextActor))
+	if appdata.Turn.NextActor >= util.NumPlayers {
+		return errorInfo.ThrowError(fmt.Sprintf("Next Actor is not valid. Should be smaller than %v but is %v", util.NumPlayers, appdata.Turn.NextActor))
 	}
 
+	// Initial state is correct
+	var newData DominionAppData
+	err := newData.Init(channel.Index(appdata.Turn.NextActor))
+
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
+
+	if reflect.DeepEqual(newData, appdata) {
+		return errorInfo.ThrowError("State transition could not be replicated for action")
+	}
 	return nil
 }

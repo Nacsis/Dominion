@@ -1,10 +1,13 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"perun.network/go-perun/channel"
 	"perun.network/perun-examples/app-channel/app/util"
+	"perun.network/perun-examples/app-channel/global"
+	"reflect"
 )
 
 // Init sets up initial game state
@@ -17,7 +20,84 @@ func (a *DominionApp) Init(firstActor channel.Index) *DominionAppData {
 	return &dominionAppData
 }
 
-// EndTurn ends current turn by switching actors
+// _ValidState validate the last performed action lead to current state
+func (a *DominionApp) _ValidState(fromData, toData DominionAppData, idx channel.Index) error {
+	errorInfo := util.ErrorInfo{FunctionName: "_ValidState", FileName: util.ErrorConstAPP}
+
+	// Deep Copy. Seems like the other ways didn't work correctly ... idk
+	origJSON, _ := json.Marshal(fromData)
+	fromDataClone := DominionAppData{}
+	json.Unmarshal(origJSON, &fromDataClone)
+
+	var err error
+
+	switch toData.Turn.PerformedAction {
+	case util.RngCommit:
+		if uint8(len(toData.Rng.ImageA)) != util.HashSize {
+			err = errorInfo.ThrowError(fmt.Sprintf("given Image has not correct size of %d", util.HashSize))
+			break
+		}
+		dummyPreImage := global.RandomBytes(util.HashSize)
+		err = fromDataClone.RngCommit(idx, dummyPreImage)
+		fromDataClone.Rng.ImageA = toData.Rng.ImageA
+		break
+	case util.RngTouch:
+		if uint8(len(toData.Rng.PreImageB)) != util.HashSize {
+			err = errorInfo.ThrowError(fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
+			break
+		}
+		err = fromDataClone.RngTouch(idx)
+		fromDataClone.Rng.PreImageB = toData.Rng.PreImageB
+		break
+	case util.RngRelease:
+		if uint8(len(toData.Rng.PreImageA)) != util.HashSize {
+			err = errorInfo.ThrowError(fmt.Sprintf("given preImage has not correct size of %d", util.HashSize))
+			break
+		}
+		err = fromDataClone.RngRelease(idx, toData.Rng.PreImageA)
+		break
+	case util.DrawCard:
+		err = fromDataClone.DrawCard(idx)
+		break
+	case util.PlayCard:
+		playedIndex := 0
+		toCards := toData.CardDecks[idx].HandPile.Cards
+		fromCards := fromDataClone.CardDecks[idx].HandPile.Cards
+		if len(fromCards) <= len(toCards) {
+			err = errorInfo.ThrowError("toCards is to long. No card was played")
+			break
+		}
+		for i := 0; i < len(fromCards); i++ {
+			if i == len(toCards) || toCards[i].CardType != fromCards[i].CardType {
+				playedIndex = i
+				break
+			}
+		}
+		err = fromDataClone.PlayCard(idx, uint8(playedIndex))
+		break
+	case util.BuyCard:
+		cardTypeToBuy := toData.CardDecks[idx].DiscardedPile.Cards[toData.CardDecks[idx].DiscardedPile.Length()-1].CardType
+		err = fromDataClone.BuyCard(idx, cardTypeToBuy)
+		break
+	case util.EndTurn:
+		err = fromDataClone.EndTurn(idx)
+		break
+	case util.GameEnd:
+		err = fromDataClone.EndGame(idx)
+		break
+	}
+
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
+
+	if !reflect.DeepEqual(fromDataClone, toData) {
+		return errorInfo.ThrowError("State transition could not be replicated for action")
+	}
+	return nil
+}
+
+// EndTurn ends current Turn by switching actors
 func (a *DominionApp) EndTurn(s *channel.State, actorIdx channel.Index) error {
 	errorInfo := util.ErrorInfo{FunctionName: "EndTurn", FileName: util.ErrorConstAPP}
 
@@ -61,7 +141,7 @@ func ComputeFinalBalances(b channel.Balances) channel.Balances {
 //------------------------ Decks ------------------------
 
 // DrawCard draws one card to the hand pile.
-// A rng need to be performed before.
+// A Rng need to be performed before.
 func (a *DominionApp) DrawCard(s *channel.State, actorIdx channel.Index) error {
 	errorInfo := util.ErrorInfo{FunctionName: "DrawCard", FileName: util.ErrorConstAPP}
 
@@ -111,7 +191,7 @@ func (a *DominionApp) BuyCard(s *channel.State, actorIdx channel.Index, cardType
 
 //------------------------ Rng ------------------------
 
-// RngCommit set an image for rng
+// RngCommit set an image for Rng
 // Players who want to draw a card need to start by committing to a preimage
 func (a *DominionApp) RngCommit(s *channel.State, actorIdx channel.Index, preImage []byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "RngCommit", FileName: util.ErrorConstAPP}
@@ -128,7 +208,7 @@ func (a *DominionApp) RngCommit(s *channel.State, actorIdx channel.Index, preIma
 	return nil
 }
 
-// RngTouch set a second preimage for rng
+// RngTouch set a second preimage for Rng
 // Players need accept the set image by selecting a second preimage
 func (a *DominionApp) RngTouch(s *channel.State, actorIdx channel.Index) error {
 	errorInfo := util.ErrorInfo{FunctionName: "RngTouch", FileName: util.ErrorConstAPP}

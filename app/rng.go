@@ -29,7 +29,7 @@ func (r *RNG) Of(dataBytes []byte) {
 // ToByte create a byte representation of RNG
 func (r *RNG) ToByte() []byte {
 
-	// if ImageA is not set end with rng length 0
+	// if ImageA is not set end with Rng length 0
 	var dataBytes = make([]byte, 0)
 
 	if r.ImageA != nil && uint8(len(r.ImageA)) == util.HashSize {

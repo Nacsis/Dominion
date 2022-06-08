@@ -7,24 +7,24 @@ import (
 )
 
 type DominionAppData struct {
-	turn      Turn
-	stock     Stock
+	Turn      Turn
+	Stock     Stock
 	CardDecks [util.NumPlayers]Deck
-	rng       RNG
+	Rng       RNG
 }
 
 // Encode encodes the app data onto an io.Writer.
 func (d *DominionAppData) Encode(w io.Writer) error {
 	errorInfo := util.ErrorInfo{FunctionName: "Encode", FileName: util.ErrorConstDATA}
 
-	// Encode turn
-	err := util.Write(w, &d.turn)
+	// Encode Turn
+	err := util.Write(w, &d.Turn)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
 
-	// Encode stock
-	err = util.Write(w, &d.stock)
+	// Encode Stock
+	err = util.Write(w, &d.Stock)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
@@ -37,8 +37,8 @@ func (d *DominionAppData) Encode(w io.Writer) error {
 		}
 	}
 
-	// Encode rng
-	err = util.Write(w, &d.rng)
+	// Encode Rng
+	err = util.Write(w, &d.Rng)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
@@ -57,14 +57,14 @@ func (d *DominionAppData) Init(firstActor channel.Index) error {
 	errorInfo := util.ErrorInfo{FunctionName: "ValidatePreImage", FileName: util.ErrorConstDATA}
 
 	// Init Turn
-	d.turn.Init(uint8(firstActor))
+	d.Turn.Init(uint8(firstActor))
 
 	// Init Stock
-	d.stock.Init()
+	d.Stock.Init()
 
 	// Init decks
 	for deckNum := 0; deckNum < util.NumPlayers; deckNum++ {
-		pile, err := d.stock.TakeOffOneInitialDeck()
+		pile, err := d.Stock.TakeOffOneInitialDeck()
 		if err != nil {
 			return errorInfo.ForwardError(err)
 		}
@@ -74,7 +74,7 @@ func (d *DominionAppData) Init(firstActor channel.Index) error {
 			return errorInfo.ForwardError(err)
 		}
 	}
-	d.rng.Init()
+	d.Rng.Init()
 
 	return nil
 }

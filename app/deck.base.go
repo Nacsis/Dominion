@@ -66,6 +66,17 @@ func (d *Deck) DiscardPlayedCards() error {
 	return nil
 }
 
+// ResetResources reset resources
+func (d *Deck) ResetResources() error {
+
+	d.Resources[util.DrawableCards] = util.InitialDrawResources
+	d.Resources[util.PlayableCards] = util.InitialPlayResources
+	d.Resources[util.PurchasableCards] = util.InitialBuyResources
+	d.Resources[util.SpendableMoney] = util.InitialMoneyResources
+
+	return nil
+}
+
 // _MixAndReassignDiscardedPile mix discardedPile and assign it to MainPile
 func (d *Deck) _MixAndReassignDiscardedPile() error {
 	discardPile := d.DiscardedPile

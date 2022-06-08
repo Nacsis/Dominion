@@ -4,18 +4,18 @@ import "perun.network/perun-examples/app-channel/app/util"
 
 // IsActionAllowed check if given action is allowed
 func (t *Turn) IsActionAllowed(action util.GeneralTypesOfActions) bool {
-	return t.possibleActions[action]
+	return t.PossibleActions[action]
 }
 
 // SetAllowed update list of allowed actions
 func (t *Turn) SetAllowed(possibleActions ...util.GeneralTypesOfActions) {
-	t.possibleActions = [util.GameEnd]bool{}
+	t.PossibleActions = [util.GameEnd]bool{}
 	for _, v := range possibleActions {
-		t.possibleActions[v] = true
+		t.PossibleActions[v] = true
 	}
 }
 
-// SetNextActor update next actor
+// SetNextActor update next Actor
 func (t *Turn) SetNextActor() {
-	t.nextActor = (t.nextActor + 1) % util.NumPlayers
+	t.NextActor = (t.NextActor + 1) % util.NumPlayers
 }

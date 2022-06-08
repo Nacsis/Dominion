@@ -95,12 +95,10 @@ func main() {
 
 func drawInitHand(drawer, other *client.DominionChannel) {
 	for i := 0; i < 5; i++ {
-		log.Println(i)
 		var alicePreimage = global.RandomBytes(util.HashSize)
 		drawer.RngCommit(alicePreimage)
 		other.RngTouch()
 		drawer.RngRelease(alicePreimage)
-
 		drawer.DrawOneCard()
 	}
 }
