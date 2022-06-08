@@ -71,10 +71,14 @@ func (d *DominionAppData) _TurnAfter(at util.GeneralTypesOfActions) {
 		d.turn.performedAction = util.PlayCard
 		allowedActions := d._GetAllowedDeckActions()
 		allowedActions = append(allowedActions, util.EndTurn)
+		d.turn.SetAllowed(allowedActions...)
+		break
 	case util.BuyCard:
 		d.turn.performedAction = util.BuyCard
 		allowedActions := d._GetAllowedDeckActions()
 		allowedActions = append(allowedActions, util.EndTurn)
+		d.turn.SetAllowed(allowedActions...)
+		break
 	case util.EndTurn:
 		d.turn.performedAction = util.EndTurn
 		d.turn.SetAllowed(util.RngCommit)
