@@ -18,6 +18,8 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "./perun-eth-contracts/contracts/App.sol";
+import "./data.sol";
+import "./Util/constant.sol";
 
 contract DominionApp is App {
 
@@ -38,6 +40,33 @@ contract DominionApp is App {
     {
 
         //require(params.participants.length == numParts, "number of participants");
+
+
+        Util.Reader fromReader = Util.Reader(from);
+        Data.DominionAppData fromAppData = decodeData(fromReader);
+        Util.Reader fromReaderClone = Util.Reader(from);
+        Data.DominionAppData fromAppDataClone = decodeData(fromReaderClone);
+        Util.Reader toReader = Util.Reader(to);
+        Data.DominionAppData toAppData = decodeData(toReader);
+
+        if (toAppData.turn.performedAction == util.RngCommit) {
+            //...
+        }
+    }
+
+    function decodeData(
+        Util.Reader r)
+    internal pure returns (Data.DominionAppData){
+        Data.DominionAppData appData = Data.DominionAppData();
+        util.ReadTurn(r, appData.turn);
+        util.ReadStock(r, appData.stock);
+
+        for (uint deckIndex = 0; deckIndex < util.NumPlayers; deckIndex++) {
+            util.ReadCardDeck(r, appData.CardDecks[decodeData]);
+        }
+        util.ReadRng(r, appData.rng);
+
+        return appData;
 
     }
 }
