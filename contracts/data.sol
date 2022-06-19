@@ -6,11 +6,11 @@ import "./stock.sol";
 import "./deck.sol";
 import "./rng.sol";
 
-library Data {
+library DataLib {
     struct DominionAppData {
-        Turn                    turn;
-        Stock                   stock;
-        Deck[util.NumPlayers]   CardDecks;
-        RNG                     rng;
+        TurnLib.Turn turn;
+        StockLib.Stock stock;
+        DeckLib.Deck[] CardDecks;
+        RNGLib.RNG rng;
     }
 }

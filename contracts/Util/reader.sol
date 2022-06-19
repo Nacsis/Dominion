@@ -1,37 +1,48 @@
 pragma solidity ^0.7.0;
 
-import "./Util/constant.sol";
+import "./constant.sol";
 import "../turn.sol";
+import "../stock.sol";
+import "../card.sol";
+import "../card.sol";
+import "../rng.sol";
+import "../deck.sol";
 
-library Reader {
-    struct Reader{
+library ReaderLib {
+    struct Reader {
         byte[] data;
     }
 
-    function ReadUInt8(Reader r) internal pure returns (uint8){
-        return r.data[0];
+    function ReadUInt8(Reader memory r) internal pure returns (uint8){
+        byte buf = r.data[0];
+        r.data = Convert.Slice2Array(r.data, 1, r.data.length);
+        return uint8(r.data[0]);
     }
 
-    function ReadX(Reader r, uint8 x) internal returns (byte[]){
-        byte[x] buf = r.data[:x];
-        r.data = r.data[x:];
+    function ReadX(Reader memory r, uint8 x) internal pure returns (byte[] memory){
+        byte[] memory buf = Convert.Slice2Array(r.data,0, x);
+        r.data = Convert.Slice2Array(r.data,x,r.data.length);
         return buf;
     }
 
-    function ReadTurn(Reader r,  Turn.turn o) internal{
-        o = Turn.of(ReadX(r,ReadUint8(r)));
+    function ReadTurn(Reader memory r) internal pure returns (TurnLib.Turn memory) {
+        TurnLib.Turn memory o = TurnLib.oof(ReadX(r, ReadUInt8(r)));
+        return o;
     }
 
-    function ReadStock(Reader r,  Turn.turn o) internal{
-        o = Stock.of(ReadX(r,ReadUint8(r)));
+    function ReadStock(Reader memory r) internal pure returns (StockLib.Stock memory) {
+        StockLib.Stock memory o = StockLib.oof(ReadX(r, ReadUInt8(r)));
+        return o;
     }
 
-    function ReadCardDeck(Reader r,  Turn.turn o) internal{
-        o = Turn.of(ReadX(r,ReadUint8(r)));
+    function ReadCardDeck(Reader memory r) internal pure returns (DeckLib.Deck memory) {
+        DeckLib.Deck memory o = DeckLib.oof(ReadX(r, ReadUInt8(r)));
+        return o;
     }
 
-    function ReadRng(Reader r,  Turn.turn o) internal{
-        o = Rng.of(ReadX(r,ReadUint8(r)));
+    function ReadRng(Reader memory r) internal pure returns (RNGLib.RNG memory){
+        RNGLib.RNG memory o = RNGLib.oof(ReadX(r, ReadUInt8(r)));
+        return o;
     }
 
 }

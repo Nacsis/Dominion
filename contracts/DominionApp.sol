@@ -20,6 +20,7 @@ pragma experimental ABIEncoderV2;
 import "./perun-eth-contracts/contracts/App.sol";
 import "./data.sol";
 import "./Util/constant.sol";
+import "./Util/reader.sol";
 
 contract DominionApp is App {
 
@@ -42,30 +43,31 @@ contract DominionApp is App {
         //require(params.participants.length == numParts, "number of participants");
 
 
-        Util.Reader fromReader = Util.Reader(from);
-        Data.DominionAppData fromAppData = decodeData(fromReader);
-        Util.Reader fromReaderClone = Util.Reader(from);
-        Data.DominionAppData fromAppDataClone = decodeData(fromReaderClone);
-        Util.Reader toReader = Util.Reader(to);
-        Data.DominionAppData toAppData = decodeData(toReader);
+        ReaderLib.Reader memory fromReader = ReaderLib.Reader(Convert.bytesToByteArray(from.appData));
+        DataLib.DominionAppData memory fromAppData = decodeData(fromReader);
+        ReaderLib.Reader memory fromReaderClone = ReaderLib.Reader(Convert.bytesToByteArray(from.appData));
+        DataLib.DominionAppData memory fromAppDataClone = decodeData(fromReaderClone);
+        ReaderLib.Reader memory toReader = ReaderLib.Reader(Convert.bytesToByteArray(to.appData));
+        DataLib.DominionAppData memory toAppData = decodeData(toReader);
 
-        if (toAppData.turn.performedAction == util.RngCommit) {
+        if (toAppData.turn.performedAction == Constant.GeneralTypesOfActions.RngCommit) {
             //...
         }
     }
 
     function decodeData(
-        Util.Reader r)
-    internal pure returns (Data.DominionAppData){
-        Data.DominionAppData appData = Data.DominionAppData();
-        util.ReadTurn(r, appData.turn);
-        util.ReadStock(r, appData.stock);
+        ReaderLib.Reader memory r)
+    internal pure returns (DataLib.DominionAppData  memory){
+        TurnLib.Turn memory turn = ReaderLib.ReadTurn(r);
+        StockLib.Stock memory stock = ReaderLib.ReadStock(r);
 
-        for (uint deckIndex = 0; deckIndex < util.NumPlayers; deckIndex++) {
-            util.ReadCardDeck(r, appData.CardDecks[decodeData]);
+        DeckLib.Deck[] memory decks = new DeckLib.Deck[](Constant.NumPlayers);
+        for (uint deckIndex = 0; deckIndex < Constant.NumPlayers; deckIndex++) {
+            ReaderLib.ReadCardDeck(r);
         }
-        util.ReadRng(r, appData.rng);
+        RNGLib.RNG memory rng = ReaderLib.ReadRng(r);
 
+        DataLib.DominionAppData memory appData = DataLib.DominionAppData(turn,stock,decks,rng);
         return appData;
 
     }
