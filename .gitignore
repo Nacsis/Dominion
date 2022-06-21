@@ -1,4 +1,10 @@
-/.idea/vcs.xml
-/.idea/workspace.xml
+# IDE jet brains
 /.idea/
 
+# IDE vscode
+/.vscode/
+
+# Go bindings
+/contracts/generated/*/*.abi
+/contracts/generated/*/*.bin
+/contracts/generated/*/*.bin-runtime
