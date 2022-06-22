@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/client"
@@ -13,6 +14,12 @@ import (
 // DominionChannel is a wrapper for a Perun channel for the Dominion app use case.
 type DominionChannel struct {
 	ch *client.Channel
+}
+
+func (g *DominionChannel) GetAppStateData() []byte {
+	w := strings.Builder{}
+	g.ch.State().Encode(&w)
+	return []byte(w.String())
 }
 
 // newDominionChannel creates a new Dominion app channel.

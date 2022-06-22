@@ -4,27 +4,28 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
-
-	"golang.org/x/crypto/sha3"
+	"github.com/ethereum/go-ethereum/crypto"
 	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
 // ToImage generate image out of preimage
 func ToImage(preImage [util.PreImageSize]byte) ([util.HashSize]byte, error) {
-	return _Enc(preImage), nil
-}
-func _Enc(preImage [util.PreImageSize]byte) [util.HashSize]byte {
-	h := sha3.New256()
-	h.Write(preImage[:])
-	return util.SliceToHashByte(h.Sum(nil))
+	errorInfo := util.ErrorInfo{FunctionName: "ToImage", FileName: util.ErrorConstCommitment}
+
+	if uint16(len(preImage)) < util.HashSize {
+		return [util.HashSize]byte{}, errorInfo.ThrowError("given preimage has not correct size")
+	}
+
+	image := [util.HashSize]byte{}
+	copy(image[:], crypto.Keccak256(preImage[:]))
+	return image, nil
 }
 
 // ValidatePreImage check if preImage can be used to generate image
 func ValidatePreImage(image [util.HashSize]byte, preImage [util.PreImageSize]byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "ValidatePreImage", FileName: util.ErrorConstCommitment}
-	var tmp = _Enc(preImage)
-	if !bytes.Equal(tmp[:], image[:]) {
-		return errorInfo.ThrowError(fmt.Sprintf("preimage: %v is not valid for image: %v ", preImage, image))
+	if !bytes.Equal(crypto.Keccak256(preImage[:]), image[:]) {
+		return errorInfo.ThrowError(fmt.Sprintf("preimage: \n%v\nis not valid for image: \n%v\nas its \n%v\n", preImage, image, crypto.Keccak256(preImage[:])))
 	}
 	return nil
 }

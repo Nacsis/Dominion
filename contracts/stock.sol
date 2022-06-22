@@ -18,4 +18,12 @@ library StockLib {
 
         return stock;
     }
+
+    function equalStock(Stock memory a, Stock memory b) internal pure{
+        require(a.CardAmounts.length == b.CardAmounts.length,"Turn.stock length changed");
+
+        for (uint i = 0; i < a.CardAmounts.length; i++) {
+            require(a.CardAmounts[i] == b.CardAmounts[i], "Turn.stock difference");
+        }
+    }
 }
