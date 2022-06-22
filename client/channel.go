@@ -109,7 +109,7 @@ func (g *DominionChannel) DrawOneCard() {
 }
 
 // PlayCard draws one card to the hand pile.
-func (g *DominionChannel) PlayCard(index uint8) {
+func (g *DominionChannel) PlayCard(index uint8, followUpIndices []uint8, followUpCardType util.CardType) {
 	errorInfo := util.ErrorInfo{FunctionName: "PlayCard", FileName: util.ErrorConstChannel}
 
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
@@ -118,7 +118,7 @@ func (g *DominionChannel) PlayCard(index uint8) {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
-		return dominionApp.PlayCard(state, g.ch.Idx(), index)
+		return dominionApp.PlayCard(state, g.ch.Idx(), index, followUpIndices, followUpCardType)
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.

@@ -7,6 +7,9 @@ import (
 type Card struct {
 	CardType      util.CardType
 	Money         uint8
+	Play          uint8
+	Buy           uint8
+	Draw          uint8
 	VictoryPoints uint8
 	PlayCost      uint8
 	BuyCost       uint8
@@ -56,5 +59,78 @@ func (c *Card) Of(dataBytes []byte) {
 		c.PlayCost = util.VictoryCardPlayCost
 		c.BuyCost = util.VictoryBigCost
 		break
+	case util.Cellar:
+		c.VictoryPoints = util.ActionCardVictoryPoint
+		c.CardType = util.Cellar
+		c.PlayCost = util.ActionCardPlayCost
+		c.BuyCost = 2
+		c.Play = 1
+		break
+	case util.Market:
+		c.Money = 1
+		c.VictoryPoints = util.ActionCardVictoryPoint
+		c.CardType = util.Market
+		c.PlayCost = util.ActionCardPlayCost
+		c.BuyCost = 5
+		c.Play = 1
+		c.Buy = 1
+		c.Play = 1
+		break
+	case util.Merchant:
+		c.VictoryPoints = util.ActionCardVictoryPoint
+		c.CardType = util.Merchant
+		c.PlayCost = util.ActionCardPlayCost
+		c.BuyCost = 3
+		c.Play = 1
+		c.Draw = 1
+		break
+	case util.Mine:
+		c.VictoryPoints = util.ActionCardVictoryPoint
+		c.CardType = util.Mine
+		c.PlayCost = util.ActionCardPlayCost
+		c.BuyCost = 5
+		break
+	case util.Remodel:
+		c.VictoryPoints = util.ActionCardVictoryPoint
+		c.CardType = util.Remodel
+		c.PlayCost = util.ActionCardPlayCost
+		c.BuyCost = 4
+		break
+	case util.Smithy:
+		c.VictoryPoints = util.ActionCardVictoryPoint
+		c.CardType = util.Smithy
+		c.PlayCost = util.ActionCardPlayCost
+		c.BuyCost = 4
+		c.Draw = 3
+		break
+	case util.Chapel:
+		c.VictoryPoints = util.ActionCardVictoryPoint
+		c.CardType = util.Chapel
+		c.PlayCost = util.ActionCardPlayCost
+		c.BuyCost = 2
+		break
+	case util.Workshop:
+		c.VictoryPoints = util.ActionCardVictoryPoint
+		c.CardType = util.Workshop
+		c.PlayCost = util.ActionCardPlayCost
+		c.BuyCost = 3
+		break
+	case util.Feast:
+		c.VictoryPoints = util.ActionCardVictoryPoint
+		c.CardType = util.Feast
+		c.PlayCost = util.ActionCardPlayCost
+		c.BuyCost = 4
+		break
+	case util.Village:
+		c.VictoryPoints = util.ActionCardVictoryPoint
+		c.CardType = util.Village
+		c.PlayCost = util.ActionCardPlayCost
+		c.BuyCost = 3
+		c.Play = 2
+		c.Draw = 1
+		break
 	}
+}
+func (c *Card) IsMoneyCard() bool {
+	return c.CardType == util.Copper || c.CardType == util.Silver || c.CardType == util.Gold
 }

@@ -38,7 +38,7 @@ func (s *Stock) TakeOffOneInitialDeck() (Pile, error) {
 
 // TakeOffCard takes off card of given CardType
 func (s *Stock) TakeOffCard(cardType util.CardType) (Card, error) {
-	errorInfo := util.ErrorInfo{FunctionName: "TakeOffOneInitialDeck", FileName: util.ErrorConstStock}
+	errorInfo := util.ErrorInfo{FunctionName: "TakeOffCard", FileName: util.ErrorConstStock}
 	if s.CardAmounts[cardType] <= 0 {
 		return Card{}, errorInfo.ThrowError(fmt.Sprint("No more cards of Type %T available", cardType))
 	}
@@ -46,4 +46,10 @@ func (s *Stock) TakeOffCard(cardType util.CardType) (Card, error) {
 	card := Card{}
 	card.Of([]byte{byte(cardType)})
 	return card, nil
+}
+
+// TrashCard trash given card
+func (s *Stock) TrashCard(cardType util.CardType) error {
+	s.Trash[cardType]++
+	return nil
 }

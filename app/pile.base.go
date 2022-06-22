@@ -3,8 +3,8 @@ package app
 import (
 	"encoding/binary"
 	"math/rand"
-
-	"perun.network/perun-examples/dominion-cli/app/util"
+	"perun.network/perun-examples/app-channel/app/util"
+	"sort"
 )
 
 // DrawCardBasedOnSeed remove and return one card based on seed
@@ -43,6 +43,27 @@ func (p *Pile) DrawCardWithIndex(index uint) (Card, error) {
 	}
 
 	return card, nil
+}
+
+// GetAndRemoveCardWithIndices draw cards with given indices
+func (p *Pile) GetAndRemoveCardWithIndices(indices []uint8) ([]Card, error) {
+	errorInfo := util.ErrorInfo{FunctionName: "GetAndRemoveCardWithIndices", FileName: util.ErrorConstPILE}
+	sort.Slice(indices, func(i, j int) bool { return indices[i] > indices[j] })
+	cards := make([]Card, 0)
+
+	for _, index := range indices {
+		if int(index) >= p.Length() {
+			return nil, errorInfo.ThrowError("index out of range")
+		}
+		cards = append(cards, p.Cards[index])
+
+		err := p._ResizeCardsWithOutIndex(int(index))
+		if err != nil {
+			return nil, errorInfo.ForwardError(err)
+		}
+	}
+
+	return cards, nil
 }
 
 // ViewCardWithIndex view card with given index without removing it of deck

@@ -32,29 +32,34 @@ func (d *DominionAppData) EndTurn(actorIdx channel.Index) error {
 	}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.EndTurn)
+
+	d._TurnAfter(util.EndTurn, Params{})
 
 	return nil
 }
 
 // _TurnAfter generate Turn state after performed action
-func (d *DominionAppData) _TurnAfter(at util.GeneralTypesOfActions) {
+func (d *DominionAppData) _TurnAfter(at util.GeneralTypesOfActions, params Params) {
 	switch at {
 	case util.RngCommit:
+		d.Turn.Params = params
 		d.Turn.PerformedAction = util.RngCommit
 		d.Turn.SetAllowed(util.RngTouch)
 		d.Turn.SetNextActor()
 		break
 	case util.RngTouch:
+		d.Turn.Params = params
 		d.Turn.PerformedAction = util.RngTouch
 		d.Turn.SetAllowed(util.RngRelease)
 		d.Turn.SetNextActor()
 		break
 	case util.RngRelease:
+		d.Turn.Params = params
 		d.Turn.PerformedAction = util.RngRelease
 		d.Turn.SetAllowed(util.DrawCard)
 		break
 	case util.DrawCard:
+		d.Turn.Params = params
 		d.Turn.PerformedAction = util.DrawCard
 		var allowedActions []util.GeneralTypesOfActions
 
@@ -72,24 +77,28 @@ func (d *DominionAppData) _TurnAfter(at util.GeneralTypesOfActions) {
 		d.Turn.SetAllowed(allowedActions...)
 		break
 	case util.PlayCard:
+		d.Turn.Params = params
 		d.Turn.PerformedAction = util.PlayCard
 		allowedActions := d._GetAllowedDeckActions()
 		allowedActions = append(allowedActions, util.EndTurn)
 		d.Turn.SetAllowed(allowedActions...)
 		break
 	case util.BuyCard:
+		d.Turn.Params = params
 		d.Turn.PerformedAction = util.BuyCard
 		allowedActions := d._GetAllowedDeckActions()
 		allowedActions = append(allowedActions, util.EndTurn)
 		d.Turn.SetAllowed(allowedActions...)
 		break
 	case util.EndTurn:
+		d.Turn.Params = params
 		d.Turn.PerformedAction = util.EndTurn
 		d.Turn.MandatoryPartFulfilled = false
 		d.Turn.SetAllowed(util.RngCommit)
 		d.Turn.SetNextActor()
 		break
 	case util.GameEnd:
+		d.Turn.Params = params
 		d.Turn.PerformedAction = util.GameEnd
 		d.Turn.MandatoryPartFulfilled = false
 		d.Turn.SetAllowed()
@@ -117,7 +126,7 @@ func (d *DominionAppData) _GetAllowedDeckActions() []util.GeneralTypesOfActions 
 
 // EndGame ends game
 func (d *DominionAppData) EndGame(idx channel.Index) error {
-	d._TurnAfter(util.GameEnd)
+	d._TurnAfter(util.GameEnd, Params{})
 	return nil
 }
 
@@ -150,13 +159,13 @@ func (d *DominionAppData) DrawCard(actorIdx channel.Index) error {
 	d.Rng = RNG{}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.DrawCard)
+	d._TurnAfter(util.DrawCard, Params{})
 
 	return nil
 }
 
 // PlayCard plays one card of the hand pile.
-func (d *DominionAppData) PlayCard(actorIdx channel.Index, index uint8) error {
+func (d *DominionAppData) PlayCard(actorIdx channel.Index, playCardIndex uint8, followUpIndices []uint8, followUpCardType util.CardType) error {
 	errorInfo := util.ErrorInfo{FunctionName: "PlayCard", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
@@ -168,14 +177,212 @@ func (d *DominionAppData) PlayCard(actorIdx channel.Index, index uint8) error {
 	}
 
 	//------ Perform action ------
-	err := d.CardDecks[actorIdx].PlayCardWithIndex(uint(index))
+	card, err := d.CardDecks[actorIdx].GetHandCardWithIndex(uint(playCardIndex))
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
+
+	err = d.CardDecks[actorIdx].UpdateResourcesAfterPlayedCard(card)
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
+
+	params := Params{MainTarget: card.CardType, SecondLvlTarget: followUpCardType, SecondLvlIndices: followUpIndices}
+	err = d._HandleAction(params)
+
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.PlayCard)
 
+	d._TurnAfter(util.PlayCard, params)
+
+	return nil
+}
+
+// _HandleAction helper function to avoid duplicated code
+func (d *DominionAppData) _HandleAction(params Params) error {
+	errorInfo := util.ErrorInfo{FunctionName: "_HandleAction", FileName: util.ErrorConstDATA}
+	playedCard := Card{}
+	playedCard.Of([]byte{byte(params.MainTarget)})
+	switch params.MainTarget {
+	case util.Feast:
+		card := Card{}
+		card.Of([]byte{byte(params.SecondLvlTarget)})
+		if card.BuyCost > 5 {
+			return errorInfo.ThrowError("Selected Card is too expensive")
+		}
+
+		// Buy selected Card
+		card, err := d.Stock.TakeOffCard(params.SecondLvlTarget)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		err = d.CardDecks[d.Turn.NextActor].AddToDiscardPile(card)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+
+		// Trash played cardToBuy
+		err = d.Stock.TrashCard(params.MainTarget)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		break
+	case util.Chapel:
+		if len(params.SecondLvlIndices) > 4 {
+			return errorInfo.ThrowError("Only 4 cardToBuy from the Hand Pile can be trashed")
+		}
+
+		// Remove Card with index from hand
+		cards, err := d.CardDecks[d.Turn.NextActor].HandPile.GetAndRemoveCardWithIndices(params.SecondLvlIndices)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		for _, card := range cards {
+			// Trash cardToBuy
+			err = d.Stock.TrashCard(card.CardType)
+			if err != nil {
+				return errorInfo.ForwardError(err)
+			}
+		}
+
+		// Move played cardToBuy to played pile
+		err = d.CardDecks[d.Turn.NextActor].MoveToPlayedPile(playedCard)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		break
+	case util.Workshop:
+		card := Card{}
+		card.Of([]byte{byte(params.SecondLvlTarget)})
+		if card.BuyCost > 4 {
+			return errorInfo.ThrowError("Selected Card is too expensive")
+		}
+
+		// Buy selected Card
+		card, err := d.Stock.TakeOffCard(params.SecondLvlTarget)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		err = d.CardDecks[d.Turn.NextActor].AddToDiscardPile(card)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+
+		// Move played cardToBuy to played pile
+		err = d.CardDecks[d.Turn.NextActor].MoveToPlayedPile(playedCard)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		break
+	case util.Remodel:
+		if len(params.SecondLvlIndices) != 1 {
+			return errorInfo.ThrowError("Only 1 cardToBuy from the Hand Pile can be trashed")
+		}
+		// Remove Card with index from hand
+		removedCard, err := d.CardDecks[d.Turn.NextActor].HandPile.DrawCardWithIndex(uint(params.SecondLvlIndices[0]))
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		// Trash cardToBuy
+		err = d.Stock.TrashCard(removedCard.CardType)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+
+		cardToBuy := Card{}
+		cardToBuy.Of([]byte{byte(params.SecondLvlTarget)})
+		if removedCard.BuyCost+2 <= cardToBuy.BuyCost {
+			return errorInfo.ThrowError("Selected Card is too expensive")
+		}
+
+		// Buy selected Card
+		cardToBuy, err = d.Stock.TakeOffCard(params.SecondLvlTarget)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		err = d.CardDecks[d.Turn.NextActor].AddToDiscardPile(cardToBuy)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+
+		// Move played cardToBuy to played pile
+		err = d.CardDecks[d.Turn.NextActor].MoveToPlayedPile(playedCard)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		break
+	case util.Cellar:
+		// Remove Card with index from hand
+		cards, err := d.CardDecks[d.Turn.NextActor].HandPile.GetAndRemoveCardWithIndices(params.SecondLvlIndices)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		for _, card := range cards {
+			// Trash cardToBuy
+			err = d.Stock.TrashCard(card.CardType)
+			if err != nil {
+				return errorInfo.ForwardError(err)
+			}
+		}
+
+		// Move played cardToBuy to played pile
+		err = d.CardDecks[d.Turn.NextActor].AddToDiscardPile(playedCard)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+
+		// Extent Drawable cards
+		d.CardDecks[d.Turn.NextActor].Resources[util.DrawableCards] += uint8(len(params.SecondLvlIndices))
+
+		break
+	case util.Mine:
+		if len(params.SecondLvlIndices) != 1 {
+			return errorInfo.ThrowError("One money card to trash need to be selected")
+		}
+		// Remove Card with index from hand
+		cardToTrash, err := d.CardDecks[d.Turn.NextActor].HandPile.DrawCardWithIndex(uint(params.SecondLvlIndices[0]))
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		if !cardToTrash.IsMoneyCard() {
+			return errorInfo.ThrowError("Card to trash needs to be a money card")
+		}
+		// Trash cardToBuy
+		err = d.Stock.TrashCard(cardToTrash.CardType)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+
+		card := Card{}
+		card.Of([]byte{byte(params.SecondLvlTarget)})
+		if !card.IsMoneyCard() {
+			return errorInfo.ThrowError("Card to gain needs to be a money card")
+		}
+
+		if card.BuyCost > card.BuyCost+3 {
+			return errorInfo.ThrowError("Card to gain can only cost trashed card +3")
+		}
+		// Buy selected Card
+		cardToBuy := Card{}
+		cardToBuy, err = d.Stock.TakeOffCard(params.SecondLvlTarget)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		err = d.CardDecks[d.Turn.NextActor].HandPile.AddCardToPile(cardToBuy)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		break
+	default:
+		// Move Played cardToBuy to Pile
+		err := d.CardDecks[d.Turn.NextActor].MoveToPlayedPile(playedCard)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+	}
 	return nil
 }
 
@@ -203,7 +410,7 @@ func (d *DominionAppData) BuyCard(actorIdx channel.Index, cardType util.CardType
 	}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.BuyCard)
+	d._TurnAfter(util.BuyCard, Params{MainTarget: cardType})
 
 	return nil
 }
@@ -230,7 +437,7 @@ func (d *DominionAppData) RngCommit(actorIdx channel.Index, image []byte) error 
 	}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.RngCommit)
+	d._TurnAfter(util.RngCommit, Params{})
 
 	return nil
 }
@@ -255,7 +462,7 @@ func (d *DominionAppData) RngTouch(actorIdx channel.Index) error {
 	}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.RngTouch)
+	d._TurnAfter(util.RngTouch, Params{})
 
 	return nil
 }
@@ -280,7 +487,7 @@ func (d *DominionAppData) RngRelease(actorIdx channel.Index, image []byte) error
 	}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.RngRelease)
+	d._TurnAfter(util.RngRelease, Params{})
 
 	return nil
 }

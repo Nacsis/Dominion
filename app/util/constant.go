@@ -25,12 +25,23 @@ const (
 type CardType uint8
 
 const (
-	Copper CardType = iota
+	NONE CardType = iota
+	Copper
 	Silver
 	Gold
 	VictorySmall
 	VictoryMid
 	VictoryBig
+	Cellar
+	Market
+	Merchant
+	Mine
+	Remodel
+	Smithy
+	Feast
+	Chapel
+	Workshop
+	Village
 )
 
 const (
@@ -56,7 +67,7 @@ const (
 
 	//------------------------ Card ------------------------
 
-	CardTypeCount                  = 6
+	CardTypeCount                  = 16
 	CopperInitialStock       uint8 = 30
 	SilverInitialStock       uint8 = 30
 	GoldInitialStock         uint8 = 30
@@ -73,6 +84,9 @@ const (
 	GoldCost   uint8 = 2
 
 	MoneyCardPlayCost uint8 = 0
+
+	ActionCardPlayCost     uint8 = 1
+	ActionCardVictoryPoint uint8 = 0
 
 	VictorySmallVictoryValue uint8 = 1
 	VictoryMidVictoryValue   uint8 = 2

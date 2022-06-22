@@ -6,6 +6,7 @@ import (
 
 type Stock struct {
 	CardAmounts [util.CardTypeCount]uint8
+	Trash       [util.CardTypeCount]uint8
 }
 
 // ToByte create a byte representation of Stock
@@ -14,6 +15,11 @@ func (s *Stock) ToByte() []byte {
 	for _, stock := range s.CardAmounts {
 		dataBytes = append(dataBytes, stock)
 	}
+
+	for _, trash := range s.Trash {
+		dataBytes = append(dataBytes, trash)
+	}
+
 	return append([]byte{byte(len(dataBytes))}, dataBytes...)
 }
 
@@ -23,6 +29,9 @@ func (s *Stock) Of(dataBytes []byte) {
 
 	for i := 0; i < len(s.CardAmounts); i++ {
 		s.CardAmounts[i] = dataBytes[i]
+	}
+	for i := 0; i < len(s.Trash); i++ {
+		s.Trash[i] = dataBytes[i]
 	}
 }
 
@@ -34,4 +43,5 @@ func (s *Stock) Init() {
 	s.CardAmounts[util.VictorySmall] = util.VictorySmallInitialStock
 	s.CardAmounts[util.VictoryMid] = util.VictoryMidInitialStock
 	s.CardAmounts[util.VictoryBig] = util.VictoryBigInitialStock
+	//TODO muss man alle Action cards in Tash auf auf 0 setzen?
 }

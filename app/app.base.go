@@ -74,7 +74,12 @@ func (a *DominionApp) _ValidState(fromData, toData DominionAppData, idx channel.
 				break
 			}
 		}
-		err = fromDataClone.PlayCard(idx, uint8(playedIndex))
+		if fromDataClone.CardDecks[idx].HandPile.Cards[playedIndex].CardType != toData.Turn.Params.MainTarget {
+			err = errorInfo.ThrowError("Played card doesn't match card index")
+			break
+		}
+
+		err = fromDataClone.PlayCard(idx, uint8(playedIndex), toData.Turn.Params.SecondLvlIndices, toData.Turn.Params.SecondLvlTarget)
 		break
 	case util.BuyCard:
 		cardTypeToBuy := toData.CardDecks[idx].DiscardedPile.Cards[toData.CardDecks[idx].DiscardedPile.Length()-1].CardType
@@ -159,7 +164,7 @@ func (a *DominionApp) DrawCard(s *channel.State, actorIdx channel.Index) error {
 }
 
 // PlayCard plays one card of the hand pile.
-func (a *DominionApp) PlayCard(s *channel.State, actorIdx channel.Index, index uint8) error {
+func (a *DominionApp) PlayCard(s *channel.State, actorIdx channel.Index, index uint8, followUpIndices []uint8, followUpCardType util.CardType) error {
 	errorInfo := util.ErrorInfo{FunctionName: "PlayCard", FileName: util.ErrorConstAPP}
 
 	dominionAppData, ok := s.Data.(*DominionAppData)
@@ -167,7 +172,7 @@ func (a *DominionApp) PlayCard(s *channel.State, actorIdx channel.Index, index u
 		return errorInfo.ThrowError(fmt.Sprintf("AppData is in an invalid data format %T", dominionAppData))
 	}
 
-	err := dominionAppData.PlayCard(actorIdx, index)
+	err := dominionAppData.PlayCard(actorIdx, index, followUpIndices, followUpCardType)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}

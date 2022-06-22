@@ -7,6 +7,7 @@ type Turn struct {
 	PerformedAction        util.GeneralTypesOfActions
 	MandatoryPartFulfilled bool
 	PossibleActions        [util.GameEnd]bool
+	Params                 Params
 }
 
 // Init sets up initial Turn state
@@ -18,6 +19,7 @@ func (t *Turn) Init(firstActor uint8) {
 	t.PerformedAction = util.GameInit
 	t.PossibleActions = possibleActions
 	t.MandatoryPartFulfilled = false
+	t.Params.Init()
 }
 
 // ToByte create a byte representation of Turn
@@ -25,13 +27,14 @@ func (t *Turn) ToByte() []byte {
 	dataBytes := append([]byte{}, t.NextActor)
 	dataBytes = append(dataBytes, byte(t.PerformedAction))
 	dataBytes = append(dataBytes, util.BoolToByte(t.MandatoryPartFulfilled))
+	dataBytes = append(dataBytes, byte(len(t.PossibleActions)))
 
 	for k, v := range t.PossibleActions {
 		if v {
 			dataBytes = append(dataBytes, byte(k))
 		}
 	}
-
+	dataBytes = append(dataBytes, t.Params.ToByte()...)
 	return append([]byte{byte(len(dataBytes))}, dataBytes...)
 }
 
@@ -43,7 +46,8 @@ func (t *Turn) Of(dataBytes []byte) {
 
 	t.PossibleActions = [util.GameEnd]bool{}
 
-	for _, k := range dataBytes[3:] {
+	for _, k := range dataBytes[4 : 4+dataBytes[3]] {
 		t.PossibleActions[k] = true
 	}
+	t.Params.Of(dataBytes[4+dataBytes[3]:])
 }

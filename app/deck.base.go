@@ -85,31 +85,56 @@ func (d *Deck) _MixAndReassignDiscardedPile() error {
 	return nil
 }
 
-// PlayCardWithIndex play card with given index
-func (d *Deck) PlayCardWithIndex(index uint) error {
-	errorInfo := util.ErrorInfo{FunctionName: "PlayCardWithIndex", FileName: util.ErrorConstDECK}
+// GetHandCardWithIndex return card with given index of HandPile
+func (d *Deck) GetHandCardWithIndex(index uint) (Card, error) {
+	errorInfo := util.ErrorInfo{FunctionName: "GetHandCardWithIndex", FileName: util.ErrorConstDECK}
 
 	card, err := d.HandPile.ViewCardWithIndex(index)
 	if err != nil {
-		return errorInfo.ForwardError(err)
+		return Card{}, errorInfo.ForwardError(err)
 	}
 
 	if card.PlayCost > d.Resources[util.PlayableCards] {
-		return errorInfo.ThrowError("Not enough play actions left")
+		return Card{}, errorInfo.ThrowError("Not enough play actions left")
 	}
 
 	card, err = d.HandPile.DrawCardWithIndex(index)
 	if err != nil {
-		return errorInfo.ForwardError(err)
+		return Card{}, errorInfo.ForwardError(err)
 	}
 
 	d.Resources[util.PlayableCards] -= card.PlayCost
-	d.Resources[util.SpendableMoney] += card.Money
 
-	err = d.PlayedPile.AddCardToPile(card)
+	return card, nil
+}
+
+// MoveToPlayedPile //TODO
+func (d *Deck) MoveToPlayedPile(card Card) error {
+	errorInfo := util.ErrorInfo{FunctionName: "MoveToPlayedPile", FileName: util.ErrorConstDECK}
+	err := d.PlayedPile.AddCardToPile(card)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
+	return nil
+}
+
+// AddToDiscardPile //TODO
+func (d *Deck) AddToDiscardPile(card Card) error {
+	errorInfo := util.ErrorInfo{FunctionName: "AddToDiscardPile", FileName: util.ErrorConstDECK}
+	err := d.DiscardedPile.AddCardToPile(card)
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
+	return nil
+}
+
+// UpdateResourcesAfterPlayedCard  //TODO
+func (d *Deck) UpdateResourcesAfterPlayedCard(card Card) error {
+
+	d.Resources[util.SpendableMoney] += card.Money
+	d.Resources[util.DrawableCards] += card.Draw
+	d.Resources[util.PurchasableCards] += card.Buy
+	d.Resources[util.PlayableCards] += card.Play
 	return nil
 }
 
@@ -126,7 +151,7 @@ func (d *Deck) BoughtCard(card Card) error {
 	d.Resources[util.SpendableMoney] -= card.BuyCost
 	d.Resources[util.PurchasableCards] -= 1
 
-	err := d.DiscardedPile.AddCardToPile(card)
+	err := d.AddToDiscardPile(card)
 
 	if err != nil {
 		return errorInfo.ForwardError(err)
