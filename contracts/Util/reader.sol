@@ -16,7 +16,7 @@ library ReaderLib {
     function ReadUInt8(Reader memory r) internal pure returns (uint8){
         byte buf = r.data[0];
         r.data = Convert.Slice2Array(r.data, 1, r.data.length);
-        return uint8(r.data[0]);
+        return uint8(buf);
     }
 
     function ReadX(Reader memory r, uint8 x) internal pure returns (byte[] memory){

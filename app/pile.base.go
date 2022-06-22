@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/binary"
-	"math/rand"
 	"perun.network/perun-examples/dominion-cli/app/util"
 	"sort"
 )
@@ -84,9 +83,7 @@ func (p *Pile) _SeedToIndex(seed []byte) (int, error) {
 		return 0, errorInfo.ThrowError("given seed has a size of 0")
 	}
 
-	seedAsInt := binary.BigEndian.Uint64(seed)
-	rand.Seed(int64(seedAsInt))
-	return rand.Intn(len(p.Cards)), nil
+	return int(binary.BigEndian.Uint64(seed) % uint64(len(p.Cards))), nil
 }
 
 // _ResizeCardsWithOutIndex remove gaps in Cards array

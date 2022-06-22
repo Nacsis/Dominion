@@ -51,8 +51,16 @@ library CardLib {
             buyCost = Constant.VictoryBigCost;
         }
 
-        Card memory c = Card(cardType,money, victoryPoints, playCost, buyCost);
+        Card memory c = Card(cardType, money, victoryPoints, playCost, buyCost);
         return c;
+    }
+
+    function equalCard(Card memory a, Card memory b) internal pure{
+        require(a.CardType == b.CardType, "A cards type changed");
+        require(a.BuyCost == b.BuyCost, "A cards buycost changed");
+        require(a.Money == b.Money, "A cards money changed");
+        require(a.PlayCost == b.PlayCost, "A cards playccost changed");
+        require(a.VictoryPoints == b.VictoryPoints, "A cards VictoryPoints changed");
     }
 
 }
