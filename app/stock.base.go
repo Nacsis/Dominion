@@ -2,7 +2,8 @@ package app
 
 import (
 	"fmt"
-	"perun.network/perun-examples/app-channel/app/util"
+
+	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
 // TakeOffOneInitialDeck returns an initial list of cards

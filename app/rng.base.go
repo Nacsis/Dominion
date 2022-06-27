@@ -2,8 +2,9 @@ package app
 
 import (
 	"fmt"
-	"perun.network/perun-examples/app-channel/app/util"
-	"perun.network/perun-examples/app-channel/global"
+
+	"perun.network/perun-examples/dominion-cli/app/util"
+	"perun.network/perun-examples/dominion-cli/global"
 )
 
 // Commit calculate and set  image A

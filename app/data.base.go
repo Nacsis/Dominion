@@ -2,7 +2,7 @@ package app
 
 import (
 	"perun.network/go-perun/channel"
-	"perun.network/perun-examples/app-channel/app/util"
+	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
 // EndTurn ends current Turn by switching actors

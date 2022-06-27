@@ -1,6 +1,6 @@
 package app
 
-import "perun.network/perun-examples/app-channel/app/util"
+import "perun.network/perun-examples/dominion-cli/app/util"
 
 // IsActionAllowed check if given action is allowed
 func (t *Turn) IsActionAllowed(action util.GeneralTypesOfActions) bool {

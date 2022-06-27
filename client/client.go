@@ -26,7 +26,7 @@ import (
 	"perun.network/go-perun/wallet"
 	"perun.network/go-perun/watcher/local"
 	"perun.network/go-perun/wire"
-	"perun.network/perun-examples/app-channel/app"
+	"perun.network/perun-examples/dominion-cli/app"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"

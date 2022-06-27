@@ -1,10 +1,11 @@
 package test
 
 import (
-	"github.com/stretchr/testify/assert"
-	"perun.network/perun-examples/app-channel/app"
-	"perun.network/perun-examples/app-channel/app/util"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"perun.network/perun-examples/dominion-cli/app"
+	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
 // Test_Card_Of

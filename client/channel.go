@@ -3,10 +3,11 @@ package client
 import (
 	"context"
 	"fmt"
+
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/client"
-	"perun.network/perun-examples/app-channel/app"
-	"perun.network/perun-examples/app-channel/app/util"
+	"perun.network/perun-examples/dominion-cli/app"
+	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
 // DominionChannel is a wrapper for a Perun channel for the Dominion app use case.

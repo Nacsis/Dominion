@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package staticDemoUtil
 
 import (
 	"context"
 	"log"
 	"math/big"
-	"perun.network/perun-examples/app-channel/contracts/generated/dominionApp"
+
+	"perun.network/perun-examples/dominion-cli/app/util"
+	"perun.network/perun-examples/dominion-cli/contracts/generated/dominionApp"
+	"perun.network/perun-examples/dominion-cli/global"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethwallet "perun.network/go-perun/backend/ethereum/wallet"
 
-	"perun.network/perun-examples/app-channel/app"
+	"perun.network/perun-examples/dominion-cli/app"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
@@ -33,11 +36,11 @@ import (
 	swallet "perun.network/go-perun/backend/ethereum/wallet/simple"
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/wire"
-	"perun.network/perun-examples/app-channel/client"
+	"perun.network/perun-examples/dominion-cli/client"
 )
 
 // deployContracts deploys the contracts on the specified ledger.
-func deployContracts(nodeURL string, chainID uint64, privateKey string) (adj, ah, app common.Address) {
+func DeployContracts(nodeURL string, chainID uint64, privateKey string) (adj, ah, app common.Address) {
 	k, err := crypto.HexToECDSA(privateKey)
 	if err != nil {
 		panic(err)
@@ -81,9 +84,10 @@ func deployContracts(nodeURL string, chainID uint64, privateKey string) (adj, ah
 }
 
 // setupGameClient sets up a new client with the given parameters.
-func setupGameClient(
+func SetupGameClient(
 	bus wire.Bus,
 	nodeURL string,
+	chainID uint64,
 	adjudicator common.Address,
 	asset ethwallet.Address,
 	privateKey string,
@@ -123,7 +127,7 @@ type balanceLogger struct {
 }
 
 // newBalanceLogger creates a new balance errorHandling.go for the specified ledger.
-func newBalanceLogger(chainURL string) balanceLogger {
+func NewBalanceLogger(chainURL string) balanceLogger {
 	c, err := ethclient.Dial(chainURL)
 	if err != nil {
 		panic(err)
@@ -142,4 +146,14 @@ func (l balanceLogger) LogBalances(clients ...*client.AppClient) {
 		bals[i] = client.WeiToEth(bal)
 	}
 	log.Println("Client balances (ETH):", bals)
+}
+
+func DrawInitHand(drawer, other *client.DominionChannel) {
+	for i := 0; i < 5; i++ {
+		var alicePreimage = global.RandomBytes(util.HashSize)
+		drawer.RngCommit(alicePreimage)
+		other.RngTouch()
+		drawer.RngRelease(alicePreimage)
+		drawer.DrawOneCard()
+	}
 }

@@ -2,8 +2,9 @@ package app
 
 import (
 	"io"
+
 	"perun.network/go-perun/channel"
-	"perun.network/perun-examples/app-channel/app/util"
+	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
 type DominionAppData struct {

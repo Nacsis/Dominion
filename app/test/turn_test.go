@@ -1,9 +1,10 @@
 package test
 
 import (
-	"github.com/stretchr/testify/assert"
-	"perun.network/perun-examples/app-channel/app"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"perun.network/perun-examples/dominion-cli/app"
 )
 
 // Test_Turn_Serialization
