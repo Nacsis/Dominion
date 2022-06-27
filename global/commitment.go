@@ -5,7 +5,8 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"fmt"
-	"perun.network/perun-examples/app-channel/app/util"
+
+	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
 // ToImage generate image out of preimage

@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"perun.network/go-perun/channel"
-	"perun.network/perun-examples/app-channel/app/util"
-	"perun.network/perun-examples/app-channel/global"
 	"reflect"
+
+	"perun.network/go-perun/channel"
+	"perun.network/perun-examples/dominion-cli/app/util"
+	"perun.network/perun-examples/dominion-cli/global"
 )
 
 // Init sets up initial game state

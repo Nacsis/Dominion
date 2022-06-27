@@ -3,10 +3,11 @@ package app
 import (
 	"fmt"
 	"io"
+	"reflect"
+
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/wallet"
-	"perun.network/perun-examples/app-channel/app/util"
-	"reflect"
+	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
 type DominionApp struct {

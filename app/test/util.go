@@ -2,10 +2,11 @@ package test
 
 import (
 	"math/rand"
-	"perun.network/perun-examples/app-channel/app"
-	"perun.network/perun-examples/app-channel/app/util"
-	"perun.network/perun-examples/app-channel/global"
 	"time"
+
+	"perun.network/perun-examples/dominion-cli/app"
+	"perun.network/perun-examples/dominion-cli/app/util"
+	"perun.network/perun-examples/dominion-cli/global"
 )
 
 func pileSetUp() (app.Pile, []util.CardType) {

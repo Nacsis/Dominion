@@ -3,7 +3,8 @@ package app
 import (
 	"encoding/binary"
 	"math/rand"
-	"perun.network/perun-examples/app-channel/app/util"
+
+	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
 // DrawCardBasedOnSeed remove and return one card based on seed
