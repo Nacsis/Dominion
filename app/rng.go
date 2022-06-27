@@ -5,24 +5,22 @@ import (
 )
 
 type RNG struct {
-	ImageA, PreImageB, PreImageA []byte
+	ImageA               [util.HashSize]byte
+	PreImageB, PreImageA [util.PreImageSize]byte
 }
 
 // Of create RNG out of a bytes
 func (r *RNG) Of(dataBytes []byte) {
-	var size = uint8(len(dataBytes))
+	var size = uint16(len(dataBytes))
 
-	if size == 0 {
-		return
+	if size == util.HashSize {
+		r.ImageA = util.SliceToHashByte(dataBytes[:util.HashSize])
 	}
-	if size >= util.HashSize {
-		r.ImageA = dataBytes[:util.HashSize] // 1 - 20
+	if size == util.PreImageSize+util.HashSize {
+		r.PreImageB = util.SliceToPreImageByte(dataBytes[util.HashSize : util.PreImageSize+util.HashSize])
 	}
-	if size >= 2*util.HashSize {
-		r.PreImageB = dataBytes[util.HashSize : 2*util.HashSize] // 21 - 40
-	}
-	if size >= 3*util.HashSize {
-		r.PreImageA = dataBytes[2*util.HashSize : 3*util.HashSize] //40 - 60
+	if size == 2*util.PreImageSize+util.HashSize {
+		r.PreImageA = util.SliceToPreImageByte(dataBytes[util.PreImageSize+util.HashSize : 2*util.PreImageSize+util.HashSize])
 	}
 }
 
@@ -32,14 +30,14 @@ func (r *RNG) ToByte() []byte {
 	// if ImageA is not set end with Rng length 0
 	var dataBytes = make([]byte, 0)
 
-	if r.ImageA != nil && uint8(len(r.ImageA)) == util.HashSize {
-		dataBytes = append(dataBytes, r.ImageA...)
-	}
-	if r.PreImageB != nil && uint8(len(r.PreImageB)) == util.HashSize {
-		dataBytes = append(dataBytes, r.PreImageB...)
-	}
-	if r.PreImageA != nil && uint8(len(r.PreImageA)) == util.HashSize {
-		dataBytes = append(dataBytes, r.PreImageA...)
+	if len(r.ImageA) != 0 {
+		dataBytes = append(dataBytes, r.ImageA[:]...)
+		if len(r.PreImageB) != 0 {
+			dataBytes = append(dataBytes, r.PreImageB[:]...)
+			if len(r.PreImageA) != 0 {
+				dataBytes = append(dataBytes, r.PreImageA[:]...)
+			}
+		}
 	}
 
 	return append([]byte{byte(len(dataBytes))}, dataBytes...)
@@ -47,7 +45,7 @@ func (r *RNG) ToByte() []byte {
 
 // Init sets up initial RNG state
 func (r *RNG) Init() {
-	r.PreImageB = make([]byte, util.HashSize)
-	r.PreImageA = make([]byte, util.HashSize)
-	r.ImageA = make([]byte, util.HashSize)
+	r.PreImageB = [util.PreImageSize]byte{}
+	r.PreImageA = [util.PreImageSize]byte{}
+	r.ImageA = [util.HashSize]byte{}
 }

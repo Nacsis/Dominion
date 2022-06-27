@@ -6,7 +6,7 @@ type GeneralTypesOfActions uint8
 const (
 	PlayableCards DeckResources = iota
 	DrawableCards
-	PurchasableCards
+	BuyableCards
 	SpendableMoney
 )
 
@@ -34,7 +34,7 @@ const (
 	VictoryBig
 	Cellar
 	Market
-	Merchant
+	Oasis
 	Mine
 	Remodel
 	Smithy
@@ -63,7 +63,8 @@ const (
 
 	//------------------------ Crypto / Framework ------------------------
 
-	HashSize uint8 = 20
+	HashSize     uint16 = 256
+	PreImageSize uint16 = 1028
 
 	//------------------------ Card ------------------------
 
@@ -80,8 +81,8 @@ const (
 	GoldMoneyValue   uint8 = 3
 
 	CopperCost uint8 = 0
-	SilverCost uint8 = 1
-	GoldCost   uint8 = 2
+	SilverCost uint8 = 2
+	GoldCost   uint8 = 6
 
 	MoneyCardPlayCost uint8 = 0
 

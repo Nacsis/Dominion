@@ -3,39 +3,34 @@ package global
 import (
 	"bytes"
 	"crypto/rand"
-	"crypto/sha1"
 	"fmt"
 
+	"golang.org/x/crypto/sha3"
 	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
 // ToImage generate image out of preimage
-func ToImage(preImage []byte) ([]byte, error) {
-	errorInfo := util.ErrorInfo{FunctionName: "ToImage", FileName: util.ErrorConstCommitment}
-
-	if uint8(len(preImage)) < util.HashSize {
-		return nil, errorInfo.ThrowError("given preimage has not correct size")
-
-	}
-	h := sha1.New()
-	h.Write(preImage)
-	return h.Sum(nil), nil
+func ToImage(preImage [util.PreImageSize]byte) ([util.HashSize]byte, error) {
+	return _Enc(preImage), nil
+}
+func _Enc(preImage [util.PreImageSize]byte) [util.HashSize]byte {
+	h := sha3.New256()
+	h.Write(preImage[:])
+	return util.SliceToHashByte(h.Sum(nil))
 }
 
 // ValidatePreImage check if preImage can be used to generate image
-func ValidatePreImage(image []byte, preImage []byte) error {
+func ValidatePreImage(image [util.HashSize]byte, preImage [util.PreImageSize]byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "ValidatePreImage", FileName: util.ErrorConstCommitment}
-
-	h := sha1.New()
-	h.Write(preImage)
-	if !bytes.Equal(h.Sum(nil), image) {
+	var tmp = _Enc(preImage)
+	if !bytes.Equal(tmp[:], image[:]) {
 		return errorInfo.ThrowError(fmt.Sprintf("preimage: %v is not valid for image: %v ", preImage, image))
 	}
 	return nil
 }
 
 // RandomBytes of given size
-func RandomBytes(size uint8) []byte { // TODO Add ERROR
+func RandomBytes(size uint16) []byte { // TODO Add ERROR
 	errorInfo := util.ErrorInfo{FunctionName: "RandomBytes", FileName: util.ErrorConstCommitment}
 
 	buf := make([]byte, size)
@@ -47,14 +42,9 @@ func RandomBytes(size uint8) []byte { // TODO Add ERROR
 }
 
 // Xor output xor of a and b
-func Xor(a, b []byte) ([]byte, error) {
-	errorInfo := util.ErrorInfo{FunctionName: "Xor", FileName: util.ErrorConstCommitment}
-
-	if len(a) != int(util.HashSize) || len(b) != int(util.HashSize) {
-		return nil, errorInfo.ThrowError(fmt.Sprintf("a or b has not the correct size of %v", util.HashSize))
-	}
-	var c = make([]byte, util.HashSize)
-	for i := uint8(0); i < util.HashSize; i++ {
+func Xor(a, b [util.PreImageSize]byte) ([]byte, error) {
+	var c = make([]byte, util.PreImageSize)
+	for i := uint16(0); i < util.PreImageSize; i++ {
 		c[i] = a[i] ^ b[i]
 	}
 	return c, nil

@@ -62,7 +62,7 @@ func (d *Deck) Init(initialMainPile Pile) error {
 	d.PlayedPile.Init()
 	d.Resources[util.DrawableCards] = util.InitialDrawResources
 	d.Resources[util.PlayableCards] = util.InitialPlayResources
-	d.Resources[util.PurchasableCards] = util.InitialBuyResources
+	d.Resources[util.BuyableCards] = util.InitialBuyResources
 	d.Resources[util.SpendableMoney] = util.InitialMoneyResources
 	return nil
 }

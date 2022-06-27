@@ -43,5 +43,8 @@ func (s *Stock) Init() {
 	s.CardAmounts[util.VictorySmall] = util.VictorySmallInitialStock
 	s.CardAmounts[util.VictoryMid] = util.VictoryMidInitialStock
 	s.CardAmounts[util.VictoryBig] = util.VictoryBigInitialStock
-	//TODO muss man alle Action cards in Tash auf auf 0 setzen?
+
+	for i := 7; i < util.CardTypeCount; i++ {
+		s.CardAmounts[i] = 10
+	}
 }

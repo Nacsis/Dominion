@@ -71,7 +71,7 @@ func (d *Deck) ResetResources() error {
 
 	d.Resources[util.DrawableCards] = util.InitialDrawResources
 	d.Resources[util.PlayableCards] = util.InitialPlayResources
-	d.Resources[util.PurchasableCards] = util.InitialBuyResources
+	d.Resources[util.BuyableCards] = util.InitialBuyResources
 	d.Resources[util.SpendableMoney] = util.InitialMoneyResources
 
 	return nil
@@ -118,9 +118,19 @@ func (d *Deck) MoveToPlayedPile(card Card) error {
 	return nil
 }
 
-// AddToDiscardPile //TODO
-func (d *Deck) AddToDiscardPile(card Card) error {
-	errorInfo := util.ErrorInfo{FunctionName: "AddToDiscardPile", FileName: util.ErrorConstDECK}
+// MoveToHandPile //TODO
+func (d *Deck) MoveToHandPile(card Card) error {
+	errorInfo := util.ErrorInfo{FunctionName: "MoveToHandPile", FileName: util.ErrorConstDECK}
+	err := d.HandPile.AddCardToPile(card)
+	if err != nil {
+		return errorInfo.ForwardError(err)
+	}
+	return nil
+}
+
+// MoveToDiscardPile //TODO
+func (d *Deck) MoveToDiscardPile(card Card) error {
+	errorInfo := util.ErrorInfo{FunctionName: "MoveToDiscardPile", FileName: util.ErrorConstDECK}
 	err := d.DiscardedPile.AddCardToPile(card)
 	if err != nil {
 		return errorInfo.ForwardError(err)
@@ -131,10 +141,10 @@ func (d *Deck) AddToDiscardPile(card Card) error {
 // UpdateResourcesAfterPlayedCard  //TODO
 func (d *Deck) UpdateResourcesAfterPlayedCard(card Card) error {
 
-	d.Resources[util.SpendableMoney] += card.Money
-	d.Resources[util.DrawableCards] += card.Draw
-	d.Resources[util.PurchasableCards] += card.Buy
-	d.Resources[util.PlayableCards] += card.Play
+	d.Resources[util.SpendableMoney] += card.SpendableMoney
+	d.Resources[util.DrawableCards] += card.Drawables
+	d.Resources[util.BuyableCards] += card.Buyables
+	d.Resources[util.PlayableCards] += card.Playables
 	return nil
 }
 
@@ -149,9 +159,9 @@ func (d *Deck) BoughtCard(card Card) error {
 	}
 
 	d.Resources[util.SpendableMoney] -= card.BuyCost
-	d.Resources[util.PurchasableCards] -= 1
+	d.Resources[util.BuyableCards] -= 1
 
-	err := d.AddToDiscardPile(card)
+	err := d.MoveToDiscardPile(card)
 
 	if err != nil {
 		return errorInfo.ForwardError(err)
@@ -181,5 +191,5 @@ func (d *Deck) IsDrawActionPossible() bool {
 
 // IsBuyActionPossible true if another buy action is possible
 func (d *Deck) IsBuyActionPossible() bool {
-	return d.Resources[util.PurchasableCards] > 0 // TODO Add check when shared supply is available
+	return d.Resources[util.BuyableCards] > 0 // TODO Add check when shared supply is available
 }

@@ -5,14 +5,14 @@ import (
 )
 
 type Card struct {
-	CardType      util.CardType
-	Money         uint8
-	Play          uint8
-	Buy           uint8
-	Draw          uint8
-	VictoryPoints uint8
-	PlayCost      uint8
-	BuyCost       uint8
+	CardType       util.CardType
+	SpendableMoney uint8
+	Playables      uint8
+	Buyables       uint8
+	Drawables      uint8
+	VictoryPoints  uint8
+	PlayCost       uint8
+	BuyCost        uint8
 }
 
 // ToByte create a byte representation of Card
@@ -24,19 +24,19 @@ func (c *Card) ToByte() []byte {
 func (c *Card) Of(dataBytes []byte) {
 	switch util.CardType(dataBytes[0]) {
 	case util.Copper:
-		c.Money = util.CopperMoneyValue
+		c.SpendableMoney = util.CopperMoneyValue
 		c.CardType = util.Copper
 		c.PlayCost = util.MoneyCardPlayCost
 		c.BuyCost = util.CopperCost
 		break
 	case util.Silver:
-		c.Money = util.SilverMoneyValue
+		c.SpendableMoney = util.SilverMoneyValue
 		c.CardType = util.Silver
 		c.PlayCost = util.MoneyCardPlayCost
 		c.BuyCost = util.SilverCost
 		break
 	case util.Gold:
-		c.Money = util.GoldMoneyValue
+		c.SpendableMoney = util.GoldMoneyValue
 		c.CardType = util.Gold
 		c.PlayCost = util.MoneyCardPlayCost
 		c.BuyCost = util.GoldCost
@@ -64,25 +64,26 @@ func (c *Card) Of(dataBytes []byte) {
 		c.CardType = util.Cellar
 		c.PlayCost = util.ActionCardPlayCost
 		c.BuyCost = 2
-		c.Play = 1
+		c.Playables = 1
 		break
 	case util.Market:
-		c.Money = 1
+		c.SpendableMoney = 1
 		c.VictoryPoints = util.ActionCardVictoryPoint
 		c.CardType = util.Market
 		c.PlayCost = util.ActionCardPlayCost
 		c.BuyCost = 5
-		c.Play = 1
-		c.Buy = 1
-		c.Play = 1
+		c.Playables = 1
+		c.Buyables = 1
+		c.Drawables = 1
 		break
-	case util.Merchant:
+	case util.Oasis:
 		c.VictoryPoints = util.ActionCardVictoryPoint
-		c.CardType = util.Merchant
+		c.CardType = util.Oasis
 		c.PlayCost = util.ActionCardPlayCost
 		c.BuyCost = 3
-		c.Play = 1
-		c.Draw = 1
+		c.Playables = 1
+		c.Drawables = 1
+		c.SpendableMoney = 1
 		break
 	case util.Mine:
 		c.VictoryPoints = util.ActionCardVictoryPoint
@@ -101,7 +102,7 @@ func (c *Card) Of(dataBytes []byte) {
 		c.CardType = util.Smithy
 		c.PlayCost = util.ActionCardPlayCost
 		c.BuyCost = 4
-		c.Draw = 3
+		c.Drawables = 3
 		break
 	case util.Chapel:
 		c.VictoryPoints = util.ActionCardVictoryPoint
@@ -126,8 +127,8 @@ func (c *Card) Of(dataBytes []byte) {
 		c.CardType = util.Village
 		c.PlayCost = util.ActionCardPlayCost
 		c.BuyCost = 3
-		c.Play = 2
-		c.Draw = 1
+		c.Playables = 2
+		c.Drawables = 1
 		break
 	}
 }

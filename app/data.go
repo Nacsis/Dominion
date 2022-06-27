@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"io"
 
 	"perun.network/go-perun/channel"
@@ -49,8 +50,10 @@ func (d *DominionAppData) Encode(w io.Writer) error {
 
 // Clone returns a deep copy of the app data.
 func (d *DominionAppData) Clone() channel.Data {
-	_d := *d
-	return &_d
+	origJSON, _ := json.Marshal(d)
+	fromDataClone := DominionAppData{}
+	json.Unmarshal(origJSON, &fromDataClone)
+	return &fromDataClone
 }
 
 // Init sets up initial game state

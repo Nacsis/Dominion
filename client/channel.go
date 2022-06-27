@@ -39,7 +39,7 @@ func (g *DominionChannel) Settle() {
 //------------------------ RNG ------------------------
 
 // RngCommit player who wants to DrawOneCard commit to an preimage by setting corresponding image
-func (g *DominionChannel) RngCommit(preImage []byte) {
+func (g *DominionChannel) RngCommit(preImage [util.PreImageSize]byte) {
 	errorInfo := util.ErrorInfo{FunctionName: "RngCommit", FileName: util.ErrorConstChannel}
 
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
@@ -73,7 +73,7 @@ func (g *DominionChannel) RngTouch() {
 }
 
 // RngRelease player who wants to DrawOneCard publish preimage for published image
-func (g *DominionChannel) RngRelease(preImage []byte) {
+func (g *DominionChannel) RngRelease(preImage [util.PreImageSize]byte) {
 	errorInfo := util.ErrorInfo{FunctionName: "RngRelease", FileName: util.ErrorConstChannel}
 
 	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
@@ -125,7 +125,7 @@ func (g *DominionChannel) PlayCard(index uint8, followUpIndices []uint8, followU
 	}
 }
 
-// BuyCard Buy one card for given CardType.
+// BuyCard Buyables one card for given CardType.
 func (g *DominionChannel) BuyCard(cardType util.CardType) {
 	errorInfo := util.ErrorInfo{FunctionName: "BuyCard", FileName: util.ErrorConstChannel}
 

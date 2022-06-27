@@ -33,13 +33,13 @@ func (d *DominionAppData) EndTurn(actorIdx channel.Index) error {
 
 	//------ Update Turn ------
 
-	d._TurnAfter(util.EndTurn, Params{})
+	d.TurnAfter(util.EndTurn, Params{})
 
 	return nil
 }
 
-// _TurnAfter generate Turn state after performed action
-func (d *DominionAppData) _TurnAfter(at util.GeneralTypesOfActions, params Params) {
+// TurnAfter generate Turn state after performed action
+func (d *DominionAppData) TurnAfter(at util.GeneralTypesOfActions, params Params) {
 	switch at {
 	case util.RngCommit:
 		d.Turn.Params = params
@@ -126,7 +126,7 @@ func (d *DominionAppData) _GetAllowedDeckActions() []util.GeneralTypesOfActions 
 
 // EndGame ends game
 func (d *DominionAppData) EndGame(idx channel.Index) error {
-	d._TurnAfter(util.GameEnd, Params{})
+	d.TurnAfter(util.GameEnd, Params{})
 	return nil
 }
 
@@ -159,7 +159,7 @@ func (d *DominionAppData) DrawCard(actorIdx channel.Index) error {
 	d.Rng = RNG{}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.DrawCard, Params{})
+	d.TurnAfter(util.DrawCard, Params{})
 
 	return nil
 }
@@ -196,7 +196,7 @@ func (d *DominionAppData) PlayCard(actorIdx channel.Index, playCardIndex uint8, 
 
 	//------ Update Turn ------
 
-	d._TurnAfter(util.PlayCard, params)
+	d.TurnAfter(util.PlayCard, params)
 
 	return nil
 }
@@ -214,12 +214,12 @@ func (d *DominionAppData) _HandleAction(params Params) error {
 			return errorInfo.ThrowError("Selected Card is too expensive")
 		}
 
-		// Buy selected Card
+		// Buyables selected Card
 		card, err := d.Stock.TakeOffCard(params.SecondLvlTarget)
 		if err != nil {
 			return errorInfo.ForwardError(err)
 		}
-		err = d.CardDecks[d.Turn.NextActor].AddToDiscardPile(card)
+		err = d.CardDecks[d.Turn.NextActor].MoveToDiscardPile(card)
 		if err != nil {
 			return errorInfo.ForwardError(err)
 		}
@@ -261,12 +261,12 @@ func (d *DominionAppData) _HandleAction(params Params) error {
 			return errorInfo.ThrowError("Selected Card is too expensive")
 		}
 
-		// Buy selected Card
+		// Buyables selected Card
 		card, err := d.Stock.TakeOffCard(params.SecondLvlTarget)
 		if err != nil {
 			return errorInfo.ForwardError(err)
 		}
-		err = d.CardDecks[d.Turn.NextActor].AddToDiscardPile(card)
+		err = d.CardDecks[d.Turn.NextActor].MoveToDiscardPile(card)
 		if err != nil {
 			return errorInfo.ForwardError(err)
 		}
@@ -294,16 +294,16 @@ func (d *DominionAppData) _HandleAction(params Params) error {
 
 		cardToBuy := Card{}
 		cardToBuy.Of([]byte{byte(params.SecondLvlTarget)})
-		if removedCard.BuyCost+2 <= cardToBuy.BuyCost {
+		if removedCard.BuyCost+2 < cardToBuy.BuyCost {
 			return errorInfo.ThrowError("Selected Card is too expensive")
 		}
 
-		// Buy selected Card
+		// Buyables selected Card
 		cardToBuy, err = d.Stock.TakeOffCard(params.SecondLvlTarget)
 		if err != nil {
 			return errorInfo.ForwardError(err)
 		}
-		err = d.CardDecks[d.Turn.NextActor].AddToDiscardPile(cardToBuy)
+		err = d.CardDecks[d.Turn.NextActor].MoveToDiscardPile(cardToBuy)
 		if err != nil {
 			return errorInfo.ForwardError(err)
 		}
@@ -322,14 +322,14 @@ func (d *DominionAppData) _HandleAction(params Params) error {
 		}
 		for _, card := range cards {
 			// Trash cardToBuy
-			err = d.Stock.TrashCard(card.CardType)
+			err = d.CardDecks[d.Turn.NextActor].MoveToDiscardPile(card)
 			if err != nil {
 				return errorInfo.ForwardError(err)
 			}
 		}
 
 		// Move played cardToBuy to played pile
-		err = d.CardDecks[d.Turn.NextActor].AddToDiscardPile(playedCard)
+		err = d.CardDecks[d.Turn.NextActor].MoveToPlayedPile(playedCard)
 		if err != nil {
 			return errorInfo.ForwardError(err)
 		}
@@ -362,19 +362,42 @@ func (d *DominionAppData) _HandleAction(params Params) error {
 			return errorInfo.ThrowError("Card to gain needs to be a money card")
 		}
 
-		if card.BuyCost > card.BuyCost+3 {
+		if card.BuyCost > cardToTrash.BuyCost+3 {
 			return errorInfo.ThrowError("Card to gain can only cost trashed card +3")
 		}
-		// Buy selected Card
+		// Buyables selected Card
 		cardToBuy := Card{}
 		cardToBuy, err = d.Stock.TakeOffCard(params.SecondLvlTarget)
 		if err != nil {
 			return errorInfo.ForwardError(err)
 		}
-		err = d.CardDecks[d.Turn.NextActor].HandPile.AddCardToPile(cardToBuy)
+		err = d.CardDecks[d.Turn.NextActor].MoveToHandPile(cardToBuy)
 		if err != nil {
 			return errorInfo.ForwardError(err)
 		}
+
+		err = d.CardDecks[d.Turn.NextActor].MoveToPlayedPile(playedCard)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		break
+	case util.Oasis:
+		if len(params.SecondLvlIndices) != 1 {
+			return errorInfo.ThrowError("One money card to discard need to be selected")
+		}
+		// Remove Card with index from hand
+		cardToDiscard, err := d.CardDecks[d.Turn.NextActor].HandPile.DrawCardWithIndex(uint(params.SecondLvlIndices[0]))
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		d.CardDecks[d.Turn.NextActor].DiscardedPile.AddCardToPile(cardToDiscard)
+
+		// Move played cardToBuy to played pile
+		err = d.CardDecks[d.Turn.NextActor].MoveToPlayedPile(playedCard)
+		if err != nil {
+			return errorInfo.ForwardError(err)
+		}
+		break
 		break
 	default:
 		// Move Played cardToBuy to Pile
@@ -386,7 +409,7 @@ func (d *DominionAppData) _HandleAction(params Params) error {
 	return nil
 }
 
-// BuyCard Buy one card for given CardType.
+// BuyCard Buyables one card for given CardType.
 func (d *DominionAppData) BuyCard(actorIdx channel.Index, cardType util.CardType) error {
 	errorInfo := util.ErrorInfo{FunctionName: "BuyCard", FileName: util.ErrorConstDATA}
 
@@ -410,7 +433,7 @@ func (d *DominionAppData) BuyCard(actorIdx channel.Index, cardType util.CardType
 	}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.BuyCard, Params{MainTarget: cardType})
+	d.TurnAfter(util.BuyCard, Params{MainTarget: cardType})
 
 	return nil
 }
@@ -419,7 +442,7 @@ func (d *DominionAppData) BuyCard(actorIdx channel.Index, cardType util.CardType
 
 // RngCommit set an image for Rng
 // Players who want to draw a card need to start by committing to a preimage
-func (d *DominionAppData) RngCommit(actorIdx channel.Index, image []byte) error {
+func (d *DominionAppData) RngCommit(actorIdx channel.Index, image [util.PreImageSize]byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "RngCommit", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
@@ -437,7 +460,7 @@ func (d *DominionAppData) RngCommit(actorIdx channel.Index, image []byte) error 
 	}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.RngCommit, Params{})
+	d.TurnAfter(util.RngCommit, Params{})
 
 	return nil
 }
@@ -462,14 +485,14 @@ func (d *DominionAppData) RngTouch(actorIdx channel.Index) error {
 	}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.RngTouch, Params{})
+	d.TurnAfter(util.RngTouch, Params{})
 
 	return nil
 }
 
 // RngRelease set preimage of set image
 // Players publish their preimage of the image, s.t. a shared random value can be calculated
-func (d *DominionAppData) RngRelease(actorIdx channel.Index, image []byte) error {
+func (d *DominionAppData) RngRelease(actorIdx channel.Index, image [util.PreImageSize]byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "RngRelease", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
@@ -487,7 +510,7 @@ func (d *DominionAppData) RngRelease(actorIdx channel.Index, image []byte) error
 	}
 
 	//------ Update Turn ------
-	d._TurnAfter(util.RngRelease, Params{})
+	d.TurnAfter(util.RngRelease, Params{})
 
 	return nil
 }

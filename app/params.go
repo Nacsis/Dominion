@@ -1,6 +1,6 @@
 package app
 
-import "perun.network/perun-examples/app-channel/app/util"
+import "perun.network/perun-examples/dominion-cli/app/util"
 
 type Params struct {
 	MainTarget       util.CardType
