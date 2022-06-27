@@ -38,6 +38,7 @@
    ```
 
 ### interactive playing
+...not yet implemented, but will work like this:
 1. Start a local blockchain with required acc
    ```sh
    ./ganache-cli.sh
