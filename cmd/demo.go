@@ -14,19 +14,19 @@ import (
 	"perun.network/perun-examples/dominion-cli/app"
 	"perun.network/perun-examples/dominion-cli/app/util"
 	"perun.network/perun-examples/dominion-cli/client"
-	"perun.network/perun-examples/dominion-cli/cmd/staticDemoUtil"
+	"perun.network/perun-examples/dominion-cli/cmd/demoUtil"
 
 	"github.com/spf13/cobra"
 )
 
-// staticDemoCmd represents the staticDemo command
-var staticDemoCmd = &cobra.Command{
-	Use:   "staticDemo",
+// demoCmd represents the demo command
+var demoCmd = &cobra.Command{
+	Use:   "demo",
 	Short: "Execute a simple deterministic example run of one dominion game.",
 	Long: `Execute a stitic example run of a simple dominion game.
 	Main purpose is to show/test that everything is working`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("staticDemo called")
+		fmt.Println("demo called")
 
 		const (
 			chainURL = "ws://127.0.0.1:8545"
@@ -40,7 +40,7 @@ var staticDemoCmd = &cobra.Command{
 
 		// Deploy contracts.
 		log.Println("Deploying contracts.")
-		adjudicator, assetHolder, appAddress := staticDemoUtil.DeployContracts(chainURL, chainID, keyDeployer)
+		adjudicator, assetHolder, appAddress := demoUtil.DeployContracts(chainURL, chainID, keyDeployer)
 		asset := *ethwallet.AsWalletAddr(assetHolder)
 		dominionApp := app.NewDominionApp(ethwallet.AsWalletAddr(appAddress))
 
@@ -48,11 +48,11 @@ var staticDemoCmd = &cobra.Command{
 		log.Println("Setting up clients.")
 		bus := wire.NewLocalBus() // Message bus used for off-chain communication.
 		stake := client.EthToWei(big.NewFloat(5))
-		alice := staticDemoUtil.SetupGameClient(bus, chainURL, chainID, adjudicator, asset, keyAlice, dominionApp, stake)
-		bob := staticDemoUtil.SetupGameClient(bus, chainURL, chainID, adjudicator, asset, keyBob, dominionApp, stake)
+		alice := demoUtil.SetupGameClient(bus, chainURL, chainID, adjudicator, asset, keyAlice, dominionApp, stake)
+		bob := demoUtil.SetupGameClient(bus, chainURL, chainID, adjudicator, asset, keyBob, dominionApp, stake)
 
 		// Print balances before transactions.
-		l := staticDemoUtil.NewBalanceLogger(chainURL)
+		l := demoUtil.NewBalanceLogger(chainURL)
 		l.LogBalances(alice, bob)
 
 		// Open dominionApp channel and play.
@@ -61,7 +61,7 @@ var staticDemoCmd = &cobra.Command{
 		appBob := bob.AcceptedChannel()
 		log.Println("Channel Open")
 
-		staticDemoUtil.DrawInitHand(appAlice, appBob)
+		demoUtil.DrawInitHand(appAlice, appBob)
 		log.Println("Alice drawn init hand")
 		appAlice.PlayCard(0)
 		log.Println("Alice played a card")
@@ -71,7 +71,7 @@ var staticDemoCmd = &cobra.Command{
 		appAlice.EndTurn()
 		log.Println("Alice end turn")
 
-		staticDemoUtil.DrawInitHand(appBob, appAlice)
+		demoUtil.DrawInitHand(appBob, appAlice)
 		log.Println("bob drawn init hand")
 		appBob.EndTurn()
 		log.Println("bob end turn")
@@ -94,15 +94,15 @@ var staticDemoCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(staticDemoCmd)
+	rootCmd.AddCommand(demoCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// staticDemoCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// demoCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// staticDemoCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// demoCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
