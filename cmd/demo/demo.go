@@ -79,8 +79,8 @@ var demoCmd = &cobra.Command{
 		log.Println("Alice end game")
 
 		// Payout.
-		appAlice.Settle()
-		appBob.Settle()
+		appAlice.SettleAndClose()
+		appBob.SettleAndClose()
 		log.Println("Settled")
 
 		// Print balances after transactions.

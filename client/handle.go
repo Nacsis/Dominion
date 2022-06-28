@@ -18,7 +18,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/pkg/errors"
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/client"
 )
@@ -91,4 +93,17 @@ func (c *AppClient) HandleUpdate(cur *channel.State, next client.ChannelUpdate, 
 // HandleAdjudicatorEvent is the callback for smart contract events.
 func (c *AppClient) HandleAdjudicatorEvent(e channel.AdjudicatorEvent) {
 	log.Printf("Adjudicator event: type = %T, client = %v", e, c.account)
+}
+
+// TODO use AppClient instead?
+func (ch *DominionChannel) Handle(update client.ChannelUpdate, res *client.UpdateResponder) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) //config.Channel.Timeout)
+	defer cancel()
+	// TODO CHECK TRANSITION VALID?! currently acception every proposal...
+	if false /* err := assertValidTransition(ch.lastState, update.State, update.ActorIdx); err != nil*/ {
+		res.Reject(ctx, "invalid transition")
+	} else if err := res.Accept(ctx); err != nil {
+		ch.log.Error(errors.WithMessage(err, "handling state update"))
+	}
+
 }
