@@ -15,8 +15,8 @@ type DominionChannel struct {
 	ch *client.Channel
 }
 
-// newDominionChannel creates a new Dominion app channel.
-func newDominionChannel(ch *client.Channel) *DominionChannel {
+// NewDominionChannel creates a new Dominion app channel.
+func NewDominionChannel(ch *client.Channel) *DominionChannel {
 	return &DominionChannel{ch: ch}
 }
 

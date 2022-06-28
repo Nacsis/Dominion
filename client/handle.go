@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/client"
 )
@@ -74,7 +75,7 @@ func (c *AppClient) HandleProposal(p client.ChannelProposal, r *client.ProposalR
 	// Start the on-chain event watcher. It automatically handles disputes.
 	c.startWatching(ch)
 
-	c.channels <- newDominionChannel(ch)
+	c.channels <- NewDominionChannel(ch)
 }
 
 // HandleUpdate is the callback for incoming channel updates.

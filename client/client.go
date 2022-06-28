@@ -150,7 +150,7 @@ func (c *AppClient) OpenAppChannel(peer wire.Address) *DominionChannel {
 	// Start the on-chain event watcher. It automatically handles disputes.
 	c.startWatching(ch)
 
-	return newDominionChannel(ch)
+	return NewDominionChannel(ch)
 }
 
 // startWatching starts the dispute watcher for the specified channel.
