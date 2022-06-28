@@ -6,31 +6,48 @@ import (
 
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/client"
+	"perun.network/go-perun/log"
 	"perun.network/perun-examples/dominion-cli/app"
 	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
 // DominionChannel is a wrapper for a Perun channel for the Dominion app use case.
 type DominionChannel struct {
-	ch *client.Channel
+	*client.Channel
+
+	log log.Logger
+	// 	handler chan bool
+	// 	res     chan handlerRes
+	// 	onFinal func()
+	// 	// save the last state to circumvent the `channel.StateMtxd` problem
+	// 	lastState *channel.State
+	// }
+
+	// // A handlerRes encapsulates the result of a channel handling request
+	// type handlerRes struct {
+	// 	up  client.ChannelUpdate
+	// 	err error
 }
 
 // NewDominionChannel creates a new Dominion app channel.
 func NewDominionChannel(ch *client.Channel) *DominionChannel {
-	return &DominionChannel{ch: ch}
+	return &DominionChannel{
+		Channel: ch,
+		log:     log.WithField("channel", ch.ID()),
+	}
 }
 
 // Settle settles the app channel and withdraws the funds.
-func (g *DominionChannel) Settle() {
+func (g *DominionChannel) SettleAndClose() {
 	// Channel should be finalized through last ("winning") move.
 	// No need to set `isFinal` here.
-	err := g.ch.Settle(context.TODO(), false)
+	err := g.Settle(context.TODO(), false)
 	if err != nil {
 		panic(err)
 	}
 
 	// Cleanup.
-	err = g.ch.Close()
+	err = g.Close()
 	if err != nil {
 		return
 	}
@@ -42,13 +59,13 @@ func (g *DominionChannel) Settle() {
 func (g *DominionChannel) RngCommit(preImage [util.PreImageSize]byte) {
 	errorInfo := util.ErrorInfo{FunctionName: "RngCommit", FileName: util.ErrorConstChannel}
 
-	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
-		return dominionApp.RngCommit(state, g.ch.Idx(), preImage)
+		return dominionApp.RngCommit(state, g.Idx(), preImage)
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.
@@ -59,13 +76,13 @@ func (g *DominionChannel) RngCommit(preImage [util.PreImageSize]byte) {
 func (g *DominionChannel) RngTouch() {
 	errorInfo := util.ErrorInfo{FunctionName: "RngTouch", FileName: util.ErrorConstChannel}
 
-	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
-		return dominionApp.RngTouch(state, g.ch.Idx())
+		return dominionApp.RngTouch(state, g.Idx())
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.
@@ -76,13 +93,13 @@ func (g *DominionChannel) RngTouch() {
 func (g *DominionChannel) RngRelease(preImage [util.PreImageSize]byte) {
 	errorInfo := util.ErrorInfo{FunctionName: "RngRelease", FileName: util.ErrorConstChannel}
 
-	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
-		return dominionApp.RngRelease(state, g.ch.Idx(), preImage)
+		return dominionApp.RngRelease(state, g.Idx(), preImage)
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.
@@ -95,13 +112,13 @@ func (g *DominionChannel) RngRelease(preImage [util.PreImageSize]byte) {
 func (g *DominionChannel) DrawOneCard() {
 	errorInfo := util.ErrorInfo{FunctionName: "DrawCard", FileName: util.ErrorConstChannel}
 
-	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
-		return dominionApp.DrawCard(state, g.ch.Idx())
+		return dominionApp.DrawCard(state, g.Idx())
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.
@@ -112,13 +129,13 @@ func (g *DominionChannel) DrawOneCard() {
 func (g *DominionChannel) PlayCard(index uint8, followUpIndices []uint8, followUpCardType util.CardType) {
 	errorInfo := util.ErrorInfo{FunctionName: "PlayCard", FileName: util.ErrorConstChannel}
 
-	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
-		return dominionApp.PlayCard(state, g.ch.Idx(), index, followUpIndices, followUpCardType)
+		return dominionApp.PlayCard(state, g.Idx(), index, followUpIndices, followUpCardType)
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.
@@ -129,13 +146,13 @@ func (g *DominionChannel) PlayCard(index uint8, followUpIndices []uint8, followU
 func (g *DominionChannel) BuyCard(cardType util.CardType) {
 	errorInfo := util.ErrorInfo{FunctionName: "BuyCard", FileName: util.ErrorConstChannel}
 
-	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
-		return dominionApp.BuyCard(state, g.ch.Idx(), cardType)
+		return dominionApp.BuyCard(state, g.Idx(), cardType)
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.
@@ -148,13 +165,13 @@ func (g *DominionChannel) BuyCard(cardType util.CardType) {
 func (g *DominionChannel) EndTurn() {
 	errorInfo := util.ErrorInfo{FunctionName: "EndTurn", FileName: util.ErrorConstChannel}
 
-	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
-		return dominionApp.EndTurn(state, g.ch.Idx())
+		return dominionApp.EndTurn(state, g.Idx())
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.
@@ -166,13 +183,13 @@ func (g *DominionChannel) EndTurn() {
 // EndGame
 func (g *DominionChannel) EndGame() {
 	errorInfo := util.ErrorInfo{FunctionName: "EndTurn", FileName: util.ErrorConstChannel}
-	err := g.ch.UpdateBy(context.TODO(), func(state *channel.State) error {
+	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
-		return dominionApp.EndGame(state, g.ch.Idx())
+		return dominionApp.EndGame(state, g.Idx())
 	})
 	if err != nil {
 		panic(err) // We panic on error to keep the code simple.

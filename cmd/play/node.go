@@ -9,10 +9,8 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"os"
 	"strconv"
 	"sync"
-	"text/tabwriter"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
@@ -178,19 +176,19 @@ type balTuple struct {
 	My, Other *big.Int
 }
 
-func (n *node) GetBals() map[string]balTuple {
-	n.mtx.Lock()
-	defer n.mtx.Unlock()
+// func (n *node) GetBals() map[string]balTuple {
+// 	n.mtx.Lock()
+// 	defer n.mtx.Unlock()
 
-	bals := make(map[string]balTuple)
-	for alias, peer := range n.peers {
-		if peer.ch != nil {
-			my, other := peer.ch.GetBalances()
-			bals[alias] = balTuple{my, other}
-		}
-	}
-	return bals
-}
+// 	bals := make(map[string]balTuple)
+// 	for alias, peer := range n.peers {
+// 		if peer.ch != nil {
+// 			my, other := peer.ch.GetBalances()
+// 			bals[alias] = balTuple{my, other}
+// 		}
+// 	}
+// 	return bals
+// }
 
 func findConfig(id wallet.Address) (string, *netConfigEntry) {
 	for alias, e := range config.Peers {
@@ -212,10 +210,11 @@ func (n *node) HandleUpdate(_ *channel.State, update client.ChannelUpdate, resp 
 		log.Error("Channel for ID not found")
 		return
 	}
+	// TODO !!! verify security valid transition etc
 	ch.Handle(update, resp)
 }
 
-func (n *node) channel(id channel.ID) *paymentChannel {
+func (n *node) channel(id channel.ID) *dominionClient.DominionChannel {
 	for _, p := range n.peers {
 		if p.ch != nil && p.ch.ID() == id {
 			return p.ch
@@ -333,44 +332,44 @@ func (n *node) Open(args []string) error {
 	return nil
 }
 
-func (n *node) Send(args []string) error {
-	n.mtx.Lock()
-	defer n.mtx.Unlock()
-	n.log.Traceln("Sending...")
+// func (n *node) Send(args []string) error {
+// 	n.mtx.Lock()
+// 	defer n.mtx.Unlock()
+// 	n.log.Traceln("Sending...")
 
-	peer := n.peers[args[0]]
-	if peer == nil {
-		return errors.Errorf("peer not found %s", args[0])
-	} else if peer.ch == nil {
-		return errors.Errorf("connect to peer first")
-	}
-	amountEth, _ := new(big.Float).SetString(args[1]) // Input was already validated by command parser.
-	return peer.ch.sendMoney(etherToWei(amountEth)[0])
-}
+// 	peer := n.peers[args[0]]
+// 	if peer == nil {
+// 		return errors.Errorf("peer not found %s", args[0])
+// 	} else if peer.ch == nil {
+// 		return errors.Errorf("connect to peer first")
+// 	}
+// 	amountEth, _ := new(big.Float).SetString(args[1]) // Input was already validated by command parser.
+// 	return peer.ch.sendMoney(etherToWei(amountEth)[0])
+// }
 
-func (n *node) Close(args []string) error {
-	n.mtx.Lock()
-	defer n.mtx.Unlock()
-	n.log.Traceln("Closing...")
+// func (n *node) Close(args []string) error {
+// 	n.mtx.Lock()
+// 	defer n.mtx.Unlock()
+// 	n.log.Traceln("Closing...")
 
-	alias := args[0]
-	peer := n.peers[alias]
-	if peer == nil {
-		return errors.Errorf("Unknown peer: %s", alias)
-	}
-	if err := peer.ch.sendFinal(); err != nil {
-		return errors.WithMessage(err, "sending final state for state closing")
-	}
+// 	alias := args[0]
+// 	peer := n.peers[alias]
+// 	if peer == nil {
+// 		return errors.Errorf("Unknown peer: %s", alias)
+// 	}
+// 	if err := peer.ch.sendFinal(); err != nil {
+// 		return errors.WithMessage(err, "sending final state for state closing")
+// 	}
 
-	if err := n.settle(peer); err != nil {
-		return errors.WithMessage(err, "settling")
-	}
-	fmt.Printf("\r🏁 Settled channel with %s.\n", peer.alias)
-	return nil
-}
+// 	if err := n.settle(peer); err != nil {
+// 		return errors.WithMessage(err, "settling")
+// 	}
+// 	fmt.Printf("\r🏁 Settled channel with %s.\n", peer.alias)
+// 	return nil
+// }
 
 func (n *node) settle(p *peer) error {
-	p.ch.log.Debug("Settling")
+	p.log.Debug("Settling")
 	ctx, cancel := context.WithTimeout(context.Background(), config.Channel.SettleTimeout)
 	defer cancel()
 
@@ -381,40 +380,40 @@ func (n *node) settle(p *peer) error {
 	if err := p.ch.Close(); err != nil {
 		return errors.WithMessage(err, "channel closing")
 	}
-	p.ch.log.Debug("Removing channel")
+	p.log.Debug("Removing channel")
 	p.ch = nil
 	return nil
 }
 
-// Info prints the phase of all channels.
-func (n *node) Info(args []string) error {
-	n.mtx.Lock()
-	defer n.mtx.Unlock()
-	n.log.Traceln("Info...")
+// // Info prints the phase of all channels.
+// func (n *node) Info(args []string) error {
+// 	n.mtx.Lock()
+// 	defer n.mtx.Unlock()
+// 	n.log.Traceln("Info...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), config.Chain.TxTimeout)
-	defer cancel()
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.Debug)
-	fmt.Fprintf(w, "Peer\tPhase\tVersion\tMy Ξ\tPeer Ξ\tMy On-Chain Ξ\tPeer On-Chain Ξ\t\n")
-	for alias, peer := range n.peers {
-		onChainBals, err := getOnChainBal(ctx, n.onChain.Address(), peer.perunID)
-		if err != nil {
-			return err
-		}
-		onChainBalsEth := weiToEther(onChainBals...)
-		if peer.ch == nil {
-			fmt.Fprintf(w, "%s\t%s\t \t \t \t%v\t%v\t\n", alias, "Connected", onChainBalsEth[0], onChainBalsEth[1])
-		} else {
-			bals := weiToEther(peer.ch.GetBalances())
-			fmt.Fprintf(w, "%s\t%v\t%d\t%v\t%v\t%v\t%v\t\n",
-				alias, peer.ch.Phase(), peer.ch.State().Version, bals[0], bals[1], onChainBalsEth[0], onChainBalsEth[1])
-		}
-	}
-	fmt.Fprintln(w)
-	w.Flush()
+// 	ctx, cancel := context.WithTimeout(context.Background(), config.Chain.TxTimeout)
+// 	defer cancel()
+// 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.Debug)
+// 	fmt.Fprintf(w, "Peer\tPhase\tVersion\tMy Ξ\tPeer Ξ\tMy On-Chain Ξ\tPeer On-Chain Ξ\t\n")
+// 	for alias, peer := range n.peers {
+// 		onChainBals, err := getOnChainBal(ctx, n.onChain.Address(), peer.perunID)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		onChainBalsEth := weiToEther(onChainBals...)
+// 		if peer.ch == nil {
+// 			fmt.Fprintf(w, "%s\t%s\t \t \t \t%v\t%v\t\n", alias, "Connected", onChainBalsEth[0], onChainBalsEth[1])
+// 		} else {
+// 			bals := weiToEther(peer.ch.GetBalances())
+// 			fmt.Fprintf(w, "%s\t%v\t%d\t%v\t%v\t%v\t%v\t\n",
+// 				alias, peer.ch.Phase(), peer.ch.State().Version, bals[0], bals[1], onChainBalsEth[0], onChainBalsEth[1])
+// 		}
+// 	}
+// 	fmt.Fprintln(w)
+// 	w.Flush()
 
-	return nil
-}
+// 	return nil
+// }
 
 func (n *node) Exit([]string) error {
 	n.mtx.Lock()

@@ -43,22 +43,22 @@ func init() {
 			[]argument{{"Peer", valAlias}, {"Our Balance", valBal}, {"Their Balance", valBal}},
 			"Open a payment channel with the given peer and balances. The first value is the own balance and the second value is the peers balance. It is only possible to open one channel per peer.\nExample: open alice 10 10",
 			func(args []string) error { return backend.Open(args) },
-		}, {
-			"close",
-			[]argument{{"Peer", valPeer}},
-			"Close a the channel with the given peer. This will push the latest state to the block chain.\nExample: close alice",
-			func(args []string) error { return backend.Close(args) },
+			// }, {
+			// 	"close",
+			// 	[]argument{{"Peer", valPeer}},
+			// 	"Close a the channel with the given peer. This will push the latest state to the block chain.\nExample: close alice",
+			// 	func(args []string) error { return backend.Close(args) },
 		}, {
 			"config",
 			nil,
 			"Print the current configuration and known peers.",
 			func([]string) error { return backend.PrintConfig() },
 		}, {
-			"info",
-			nil,
-			"Print information about funds, peers, and channels.",
-			func(args []string) error { return backend.Info(args) },
-		}, {
+			// 	"info",
+			// 	nil,
+			// 	"Print information about funds, peers, and channels.",
+			// 	func(args []string) error { return backend.Info(args) },
+			// }, {
 			"help",
 			nil,
 			"Prints all possible commands.",
