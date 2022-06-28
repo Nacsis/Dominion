@@ -1,0 +1,1 @@
+ganache-cli -m "pistol kiwi shrug future ozone ostrich match remove crucial oblige cream critic" --block-time 5 -e 1000
