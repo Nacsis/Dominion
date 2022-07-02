@@ -233,7 +233,7 @@ func (a *DominionApp) RngTouch(s *channel.State, actorIdx channel.Index) error {
 
 // RngRelease set preimage of set image
 // Players publish their preimage of the image, s.t. a shared random value can be calculated
-func (a *DominionApp) RngRelease(s *channel.State, actorIdx channel.Index, image [util.PreImageSize]byte) error {
+func (a *DominionApp) RngRelease(s *channel.State, actorIdx channel.Index, preImage [util.PreImageSize]byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "RngRelease", FileName: util.ErrorConstAPP}
 
 	dominionAppData, ok := s.Data.(*DominionAppData)
@@ -241,7 +241,7 @@ func (a *DominionApp) RngRelease(s *channel.State, actorIdx channel.Index, image
 		return errorInfo.ThrowError(fmt.Sprintf("AppData is in an invalid data format %T", dominionAppData))
 	}
 
-	err := dominionAppData.RngRelease(actorIdx, image)
+	err := dominionAppData.RngRelease(actorIdx, preImage)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
