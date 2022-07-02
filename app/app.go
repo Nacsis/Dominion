@@ -91,7 +91,17 @@ func (a *DominionApp) ValidTransition(params *channel.Params, from, to *channel.
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}
-	// TODO Check if final state is reached
+
+	if toData.Turn.PerformedAction == util.GameEnd {
+		expectedBalances := toData.ComputeFinalBalances(from.Balances)
+		if !to.IsFinal {
+			return errorInfo.ThrowError("Expected final flag to be true")
+		}
+		if !to.Allocation.Balances.Equal(expectedBalances) {
+			return errorInfo.ThrowError("Balances was not calculated correctly")
+		}
+
+	}
 	return nil
 }
 

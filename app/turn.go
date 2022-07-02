@@ -6,13 +6,13 @@ type Turn struct {
 	NextActor              uint8
 	PerformedAction        util.GeneralTypesOfActions
 	MandatoryPartFulfilled bool
-	PossibleActions        [util.GameEnd]bool
+	PossibleActions        [util.GeneralTypesOfActionsCount]bool
 	Params                 Params
 }
 
 // Init sets up initial Turn state
 func (t *Turn) Init(firstActor uint8) {
-	possibleActions := [util.GameEnd]bool{}
+	possibleActions := [util.GeneralTypesOfActionsCount]bool{}
 	possibleActions[util.RngCommit] = true
 
 	t.NextActor = firstActor
@@ -44,7 +44,7 @@ func (t *Turn) Of(dataBytes []byte) {
 	t.PerformedAction = util.GeneralTypesOfActions(dataBytes[1])
 	t.MandatoryPartFulfilled = util.ByteToBool(dataBytes[2])
 
-	t.PossibleActions = [util.GameEnd]bool{}
+	t.PossibleActions = [util.GeneralTypesOfActionsCount]bool{}
 
 	for _, k := range dataBytes[4 : 4+dataBytes[3]] {
 		t.PossibleActions[k] = true

@@ -45,6 +45,10 @@ const (
 )
 
 const (
+
+	//------------------------ Game Actions ------------------------
+	GeneralTypesOfActionsCount = 9
+
 	//------------------------ Game Properties ------------------------
 
 	NumPlayers = 2

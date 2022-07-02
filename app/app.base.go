@@ -135,13 +135,9 @@ func (a *DominionApp) EndGame(s *channel.State, actorIdx channel.Index) error {
 	}
 
 	s.IsFinal = true
-	s.Balances = ComputeFinalBalances(s.Balances) // TODO a real balance need to be calculated when final state could be reached
+	s.Balances = dominionAppData.ComputeFinalBalances(s.Balances)
 
 	return nil
-}
-
-func ComputeFinalBalances(b channel.Balances) channel.Balances {
-	return b.Clone()
 }
 
 //------------------------ Decks ------------------------

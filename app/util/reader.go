@@ -15,7 +15,7 @@ func ReadUInt8(r io.Reader) (uint8, error) {
 func ReadObject(r io.Reader, o Readable) error {
 	length, err := ReadUInt8(r)
 	buf := make([]byte, length)
-	io.ReadFull(r, buf) // TODO ERROR handle
+	io.ReadFull(r, buf)
 	o.Of(buf)
 	return err
 }
