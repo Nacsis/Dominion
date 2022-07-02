@@ -16,10 +16,14 @@ type DominionChannel struct {
 	ch *client.Channel
 }
 
-func (g *DominionChannel) GetAppStateData() []byte {
+func (g *DominionChannel) GetAppStateDataEncoded() []byte {
 	w := strings.Builder{}
-	g.ch.State().Encode(&w)
+	g.ch.State().Data.(*app.DominionAppData).Encode(&w)
 	return []byte(w.String())
+}
+
+func (g *DominionChannel) GetAppStateData() *app.DominionAppData {
+	return g.ch.State().Data.(*app.DominionAppData)
 }
 
 // newDominionChannel creates a new Dominion app channel.

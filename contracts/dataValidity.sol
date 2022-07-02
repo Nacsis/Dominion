@@ -20,7 +20,7 @@ library DataValidityLib {
     internal pure {
 
         if (to.turn.performedAction == Constant.GeneralTypesOfActions.GameInit) {
-            byte[] memory initEnc = Convert.bytesToByteArray(bytes(hex"c0001480e0"));
+            byte[] memory initEnc = Convert.bytesToByteArray(bytes(hex"c000032d00"));
             ReaderLib.Reader memory initReader = ReaderLib.Reader(initEnc);
             tmp = DecoderLib.decodeData(initReader);
         }
