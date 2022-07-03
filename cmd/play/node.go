@@ -26,6 +26,7 @@ import (
 	"perun.network/go-perun/wire"
 	wirenet "perun.network/go-perun/wire/net"
 	"perun.network/go-perun/wire/net/simple"
+	"perun.network/perun-examples/dominion-cli/app"
 	dominionClient "perun.network/perun-examples/dominion-cli/client"
 )
 
@@ -54,6 +55,8 @@ type node struct {
 	adjAddr     common.Address
 	asset       channel.Asset
 	assetAddr   common.Address
+	app         *app.DominionApp
+	appAddr     common.Address
 	funder      channel.Funder
 	// Needed to deploy contracts.
 	cb echannel.ContractBackend

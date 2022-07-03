@@ -14,6 +14,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -23,6 +24,7 @@ import (
 	echannel "perun.network/go-perun/backend/ethereum/channel"
 	ewallet "perun.network/go-perun/backend/ethereum/wallet"
 	phd "perun.network/go-perun/backend/ethereum/wallet/hd"
+	"perun.network/go-perun/channel"
 	"perun.network/go-perun/channel/persistence/keyvalue"
 	"perun.network/go-perun/client"
 	"perun.network/go-perun/log"
@@ -30,6 +32,8 @@ import (
 	"perun.network/go-perun/watcher/local"
 	wirenet "perun.network/go-perun/wire/net"
 	"perun.network/go-perun/wire/net/simple"
+	"perun.network/perun-examples/dominion-cli/app"
+	"perun.network/perun-examples/dominion-cli/contracts/generated/dominionApp"
 )
 
 var (
@@ -93,10 +97,12 @@ func (n *node) setup() error {
 
 	n.bus = wirenet.NewBus(n.onChain, n.dialer)
 
+	// Setup dispute watcher.
 	watcher, err := local.NewWatcher(n.adjudicator)
 	if err != nil {
 		return errors.WithMessage(err, "creating watcher")
 	}
+	// Setup Perun client.
 	if n.client, err = client.New(n.onChain.Address(), n.bus, n.funder, n.adjudicator, n.wallet, watcher); err != nil {
 		return errors.WithMessage(err, "creating client")
 	}
@@ -112,6 +118,23 @@ func (n *node) setup() error {
 	if err := n.setupPersistence(); err != nil {
 		return errors.WithMessage(err, "setting up persistence")
 	}
+
+	// TODO create AppClient
+
+	// Create client and start request handler.
+	// stake := etherToWei(big.NewFloat(5)) // TODO outsource into config
+	// c := &AppClient{
+	// 	perunClient: n.client,
+	// 	account:     n.offChain.Address(),  // TODO ask: onChain or offChain required?
+	// 	currency:    n.asset,
+	// 	stake:       stake,
+	// 	app:         n.app,
+	// 	channels:    make(chan *DominionChannel, 1),
+	// }
+
+	// Register DominionApp 2 channel
+	channel.RegisterApp(n.app)
+
 	go n.client.Handle(n, n)
 	go n.bus.Listen(listener)
 	n.PrintConfig()
@@ -121,6 +144,7 @@ func (n *node) setup() error {
 func (n *node) setupContracts() error {
 	var adjAddr common.Address
 	var assAddr common.Address
+	var appAddr common.Address
 	var err error
 
 	fmt.Println("💭 Validating contracts...")
@@ -129,10 +153,13 @@ func (n *node) setupContracts() error {
 	case contractSetupOptionValidate:
 		if adjAddr, err = validateAdjudicator(n.cb); err == nil { // validate adjudicator
 			assAddr, err = validateAssetHolder(n.cb, adjAddr) // validate asset holder
+			// TODO validate and get appAddr... but from where?!
 		}
 	case contractSetupOptionDeploy:
 		if adjAddr, err = deployAdjudicator(n.cb, n.onChain.Account); err == nil { // deploy adjudicator
-			assAddr, err = deployAssetHolder(n.cb, adjAddr, n.onChain.Account) // deploy asset holder
+			if assAddr, err = deployAssetHolder(n.cb, adjAddr, n.onChain.Account); err == nil { // deploy asset holder
+				appAddr, err = deployAppContract(n.cb, n.onChain.Account) // deploy DominionApp.sol
+			}
 		}
 	case contractSetupOptionValidateOrDeploy:
 		if adjAddr, err = validateAdjudicator(n.cb); err != nil { // validate adjudicator
@@ -144,6 +171,13 @@ func (n *node) setupContracts() error {
 			if assAddr, err = validateAssetHolder(n.cb, adjAddr); err != nil { // validate asset holder
 				fmt.Println("❌ Asset holder invalid")
 				assAddr, err = deployAssetHolder(n.cb, adjAddr, n.onChain.Account) // deploy asset holder
+			}
+		}
+
+		if err == nil {
+			if appAddr, err = validateAppContract(); err != nil { // TODO validate and get appAddr... but from where?!
+				fmt.Println("❌ App contract invalid")
+				appAddr, err = deployAppContract(n.cb, n.onChain.Account) // deploy DominionApp.sol
 			}
 		}
 	default:
@@ -159,10 +193,12 @@ func (n *node) setupContracts() error {
 
 	n.adjAddr = adjAddr
 	n.assetAddr = assAddr
+	n.appAddr = appAddr
 	recvAddr := ewallet.AsEthAddr(n.onChain.Address())
 	n.adjudicator = echannel.NewAdjudicator(n.cb, n.adjAddr, recvAddr, n.onChain.Account)
 	n.asset = (*ewallet.Address)(&n.assetAddr)
-	n.log.WithField("Adj", n.adjAddr).WithField("Asset", n.assetAddr).Debug("Set contracts")
+	n.app = app.NewDominionApp(ewallet.AsWalletAddr(appAddr))
+	n.log.WithField("Adj", n.adjAddr).WithField("Asset", n.assetAddr).WithField("App", n.appAddr).Debug("Set contracts")
 
 	funder := echannel.NewFunder(n.cb)
 	funder.RegisterAsset(ewallet.Address(n.assetAddr), new(echannel.ETHDepositor), n.onChain.Account)
@@ -209,6 +245,12 @@ func validateAssetHolder(cb echannel.ContractBackend, adjAddr common.Address) (c
 	return assAddr, echannel.ValidateAssetHolderETH(ctx, cb, assAddr, adjAddr)
 }
 
+// TODO IMPLEMENT!
+func validateAppContract() (common.Address, error) {
+	var adr common.Address
+	return adr, fmt.Errorf("validateAppContract not yet implemented...")
+}
+
 // deployAdjudicator deploys the Adjudicator to the blockchain and returns its address
 // or an error.
 func deployAdjudicator(cb echannel.ContractBackend, acc accounts.Account) (common.Address, error) {
@@ -227,6 +269,30 @@ func deployAssetHolder(cb echannel.ContractBackend, adjudicator common.Address, 
 	defer cancel()
 	asset, err := echannel.DeployETHAssetholder(ctx, cb, adjudicator, acc)
 	return asset, errors.WithMessage(err, "deploying eth assetholder")
+}
+
+// deployApp deploys the DominionApp contract to the blockchain and returns its address
+// or an error.
+func deployAppContract(cb echannel.ContractBackend, acc accounts.Account) (common.Address, error) {
+
+	const gasLimit = 1100000 // Must be sufficient for deploying DominionApp.sol.
+	var appAddress common.Address
+
+	fmt.Println("🌐 Deploying App contract 'DominionApp.sol'")
+	ctx, cancel := context.WithTimeout(context.Background(), config.Chain.TxTimeout)
+	defer cancel()
+
+	// Deploy dominion App.
+	var err error
+	var tops *bind.TransactOpts
+	var tx *types.Transaction
+	if tops, err = cb.NewTransactor(ctx, gasLimit, acc); err == nil {
+		if appAddress, tx, _, err = dominionApp.DeployDominionApp(tops, cb); err == nil {
+			_, err = bind.WaitDeployed(ctx, cb, tx)
+		}
+	}
+
+	return appAddress, errors.WithMessage(err, "deploying eth app contract")
 }
 
 // setupWallet imports the mnemonic and returns a corresponding wallet and
@@ -262,7 +328,8 @@ func (n *node) PrintConfig() error {
 			"OffChain: %s\n"+
 			"ETHAssetHolder: %s\n"+
 			"Adjudicator: %s\n"+
-			"", config.Alias, config.Node.IP, config.Node.Port, config.Chain.URL, n.onChain.Address().String(), n.offChain.Address().String(), n.assetAddr.String(), n.adjAddr.String())
+			"AppContract: %s\n"+
+			"", config.Alias, config.Node.IP, config.Node.Port, config.Chain.URL, n.onChain.Address().String(), n.offChain.Address().String(), n.assetAddr.String(), n.adjAddr.String(), n.appAddr.String())
 
 	fmt.Println("Known peers:")
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.TabIndent)
