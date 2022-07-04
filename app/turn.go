@@ -27,7 +27,15 @@ func (t *Turn) ToByte() []byte {
 	dataBytes := append([]byte{}, t.NextActor)
 	dataBytes = append(dataBytes, byte(t.PerformedAction))
 	dataBytes = append(dataBytes, util.BoolToByte(t.MandatoryPartFulfilled))
-	dataBytes = append(dataBytes, byte(len(t.PossibleActions)))
+
+	actionCounter := 0
+	for _, v := range t.PossibleActions {
+		if v {
+			actionCounter++
+		}
+	}
+
+	dataBytes = append(dataBytes, byte(actionCounter))
 
 	for k, v := range t.PossibleActions {
 		if v {
