@@ -119,19 +119,6 @@ func (n *node) setup() error {
 		return errors.WithMessage(err, "setting up persistence")
 	}
 
-	// TODO create AppClient
-
-	// Create client and start request handler.
-	// stake := etherToWei(big.NewFloat(5)) // TODO outsource into config
-	// c := &AppClient{
-	// 	perunClient: n.client,
-	// 	account:     n.offChain.Address(),  // TODO ask: onChain or offChain required?
-	// 	currency:    n.asset,
-	// 	stake:       stake,
-	// 	app:         n.app,
-	// 	channels:    make(chan *DominionChannel, 1),
-	// }
-
 	// Register DominionApp 2 channel
 	channel.RegisterApp(n.app)
 
@@ -152,8 +139,9 @@ func (n *node) setupContracts() error {
 	switch contractSetup := config.Chain.contractSetup; contractSetup {
 	case contractSetupOptionValidate:
 		if adjAddr, err = validateAdjudicator(n.cb); err == nil { // validate adjudicator
-			assAddr, err = validateAssetHolder(n.cb, adjAddr) // validate asset holder
-			// TODO validate and get appAddr... but from where?!
+			if assAddr, err = validateAssetHolder(n.cb, adjAddr); err == nil { // validate asset holder
+				appAddr, err = validateAppContract(n.cb) // validate app contract
+			}
 		}
 	case contractSetupOptionDeploy:
 		if adjAddr, err = deployAdjudicator(n.cb, n.onChain.Account); err == nil { // deploy adjudicator
@@ -175,7 +163,7 @@ func (n *node) setupContracts() error {
 		}
 
 		if err == nil {
-			if appAddr, err = validateAppContract(); err != nil { // TODO validate and get appAddr... but from where?!
+			if appAddr, err = validateAppContract(n.cb); err != nil { // validate app contract
 				fmt.Println("❌ App contract invalid")
 				appAddr, err = deployAppContract(n.cb, n.onChain.Account) // deploy DominionApp.sol
 			}
@@ -246,9 +234,12 @@ func validateAssetHolder(cb echannel.ContractBackend, adjAddr common.Address) (c
 }
 
 // TODO IMPLEMENT!
-func validateAppContract() (common.Address, error) {
-	var adr common.Address
-	return adr, fmt.Errorf("validateAppContract not yet implemented...")
+func validateAppContract(cb echannel.ContractBackend) (common.Address, error) {
+	// ctx, cancel := newTransactionContext()
+	// defer cancel()
+
+	appAddr := config.Chain.appContract
+	return appAddr, nil // TODO verify dominionApp
 }
 
 // deployAdjudicator deploys the Adjudicator to the blockchain and returns its address

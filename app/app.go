@@ -5,6 +5,7 @@ import (
 	"io"
 	"reflect"
 
+	"github.com/ethereum/go-ethereum/log"
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/wallet"
 	"perun.network/perun-examples/dominion-cli/app/util"
@@ -63,6 +64,7 @@ func (a *DominionApp) DecodeData(r io.Reader) (channel.Data, error) {
 // ValidTransition validate if state is correct
 func (a *DominionApp) ValidTransition(params *channel.Params, from, to *channel.State, idx channel.Index) error {
 	errorInfo := util.ErrorInfo{FunctionName: "ValidTransition", FileName: util.ErrorConstAPP}
+	log.Info("ValidTransition called")
 
 	// Values are correct
 	err := channel.AssetsAssertEqual(from.Assets, to.Assets)

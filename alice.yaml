@@ -21,6 +21,7 @@ chain:
   contractsetup: validateordeploy
   adjudicator: 0x079557d7549d7D44F4b00b51d2C532674129ed51
   assetholder: 0x923439be515b6a928cb9650d70000a9044e49e85
+  appcontract: 0xe72d67D4d7CB437D086445Be955385dD520Bfe11
   txTimeout: 30s
   txFinalityDepth: 1  # original: 3
   ID: 1337

@@ -95,6 +95,10 @@ func (c *AppClient) HandleAdjudicatorEvent(e channel.AdjudicatorEvent) {
 	log.Printf("Adjudicator event: type = %T, client = %v", e, c.account)
 }
 
+// ---------------------------
+// HANDLE game updates/transitions
+// ---------------------------
+
 // TODO use AppClient instead?
 func (ch *DominionChannel) Handle(update client.ChannelUpdate, res *client.UpdateResponder) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) //config.Channel.Timeout)

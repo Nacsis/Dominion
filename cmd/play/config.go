@@ -84,6 +84,8 @@ type chainConfig struct {
 	adjudicator     common.Address      //
 	Assetholder     string              // address of asset holder contract
 	assetholder     common.Address      //
+	AppContract     string              // address of app contract
+	appContract     common.Address      //
 	URL             string              // URL the endpoint of your ethereum node / infura eg: ws://10.70.5.70:8546
 	ID              int64               // Chain ID
 }
@@ -133,6 +135,12 @@ func SetConfig() {
 
 	if len(config.Chain.Assetholder) > 0 {
 		if config.Chain.assetholder, err = stringToAddress(config.Chain.Assetholder); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if len(config.Chain.AppContract) > 0 {
+		if config.Chain.appContract, err = stringToAddress(config.Chain.AppContract); err != nil {
 			log.Fatal(err)
 		}
 	}
