@@ -213,7 +213,8 @@ func (n *node) HandleUpdate(_ *channel.State, update client.ChannelUpdate, resp 
 		log.Error("Channel for ID not found")
 		return
 	}
-	// TODO !!! verify security valid transition etc
+	// TODO verify security valid transition etc -> already done by perun? just print performed action, etc?
+	// maybe auto-do mandatory alternativeless actions or print available options?
 	ch.Handle(update, resp)
 }
 
@@ -227,11 +228,18 @@ func (n *node) channel(id channel.ID) *dominionClient.DominionChannel {
 }
 
 func (n *node) HandleProposal(prop client.ChannelProposal, res *client.ProposalResponder) {
+	// Ensure that we got a ledger channel proposal.
 	req, ok := prop.(*client.LedgerChannelProposal)
 	if !ok {
 		log.Fatal("Can handle only ledger channel proposals.")
 	}
 
+	// Ensure the ledger channel proposal includes the expected app.
+	// if !req.App.Def().Equals(n.app.Def()) {  // not yet working, requires withApp in Open() in order to actually include an app in the proposal (see below)
+	// 	log.Fatal("Invalid app type ")
+	// }
+
+	// Check that we have the correct number of participants.
 	if len(req.Peers) != 2 {
 		log.Fatal("Only channels with two participants are currently supported")
 	}
@@ -309,12 +317,17 @@ func (n *node) Open(args []string) error {
 		Balances: [][]*big.Int{etherToWei(myBalEth, peerBalEth)},
 	}
 
+	// TODO add and init app
+	// firstActorIdx := channel.Index(0)
+	// withApp := client.WithApp(n.app, n.app.Init(firstActorIdx))
+
 	prop, err := client.NewLedgerChannelProposal(
 		config.Channel.ChallengeDurationSec,
 		n.offChain.Address(),
 		initBals,
 		[]wire.Address{n.onChain.Address(), peer.perunID},
-		client.WithRandomNonce(),
+		client.WithRandomNonce(), // what's that for?
+		// withApp,  // not yet working on peer...
 	)
 	if err != nil {
 		return errors.WithMessage(err, "creating channel proposal")
@@ -332,6 +345,15 @@ func (n *node) Open(args []string) error {
 	if n.channel(ch.ID()) == nil {
 		return errors.New("OnNewChannel handler could not setup channel")
 	}
+	return nil
+}
+
+func (n *node) Start(args []string) error {
+	n.mtx.Lock()
+	defer n.mtx.Unlock()
+
+	// peer.ch.
+
 	return nil
 }
 
