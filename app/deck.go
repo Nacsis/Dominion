@@ -19,39 +19,35 @@ func (d *Deck) ToByte() []byte {
 	dataBytes = append(dataBytes, d.DiscardedPile.ToByte()...)
 	dataBytes = append(dataBytes, d.PlayedPile.ToByte()...)
 
-	actionValuesBytes := []uint8{byte(len(d.Resources))}
+	dataResources := make([]byte, len(d.Resources))
+	copy(dataResources, d.Resources[:])
+	dataResources = util.AppendLength(dataResources)
 
-	for _, value := range d.Resources {
-		actionValuesBytes = append(actionValuesBytes, value)
-	}
+	dataBytes = append(dataBytes, dataResources...)
 
-	dataBytes = append(dataBytes, actionValuesBytes...)
-
-	return append([]byte{byte(len(dataBytes))}, dataBytes...)
+	return util.AppendLength(dataBytes)
 }
 
 // Of create Deck out of a bytes
 func (d *Deck) Of(dataBytes []byte) {
-	mainCardPileSize := dataBytes[0]
-	d.MainPile.Of(dataBytes[1 : mainCardPileSize+1])
-	dataBytes = dataBytes[mainCardPileSize+1:]
+	mainCardPileSize, dataBytes := util.PopLength(dataBytes)
+	d.MainPile.Of(dataBytes[:mainCardPileSize])
+	dataBytes = dataBytes[mainCardPileSize:]
 
-	handCardSize := dataBytes[0]
-	d.HandPile.Of(dataBytes[1 : handCardSize+1])
-	dataBytes = dataBytes[handCardSize+1:]
+	handCardSize, dataBytes := util.PopLength(dataBytes)
+	d.HandPile.Of(dataBytes[:handCardSize])
+	dataBytes = dataBytes[handCardSize:]
 
-	discardPileSize := dataBytes[0]
-	d.DiscardedPile.Of(dataBytes[1 : discardPileSize+1])
-	dataBytes = dataBytes[discardPileSize+1:]
+	discardPileSize, dataBytes := util.PopLength(dataBytes)
+	d.DiscardedPile.Of(dataBytes[:discardPileSize])
+	dataBytes = dataBytes[discardPileSize:]
 
-	playedPileSize := dataBytes[0]
-	d.PlayedPile.Of(dataBytes[1 : playedPileSize+1])
-	dataBytes = dataBytes[playedPileSize+1:]
+	playedPileSize, dataBytes := util.PopLength(dataBytes)
+	d.PlayedPile.Of(dataBytes[:playedPileSize])
+	dataBytes = dataBytes[playedPileSize:]
 
-	actionValuesSize := dataBytes[0]
-	for i, b := range dataBytes[1 : actionValuesSize+1] {
-		d.Resources[i] = b
-	}
+	_, dataBytes = util.PopLength(dataBytes)
+	copy(d.Resources[:], dataBytes)
 }
 
 // Init sets up initial Deck state

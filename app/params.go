@@ -26,7 +26,7 @@ func (p *Params) ToByte() []byte {
 	dataBytes = append(dataBytes, byte(p.SecondLvlTarget))
 	dataBytes = append(dataBytes, p.SecondLvlIndices...)
 
-	return append([]byte{byte(len(dataBytes))}, dataBytes...)
+	return util.AppendLength(dataBytes)
 }
 
 // Of create Params out of a bytes
@@ -34,7 +34,8 @@ func (p *Params) Of(dataBytes []byte) {
 	p.MainTarget = util.CardType(dataBytes[0])
 	p.SecondLvlTarget = util.CardType(dataBytes[1])
 	p.SecondLvlIndices = make([]uint8, len(dataBytes)-2)
-	for i, b := range dataBytes[2:] {
-		p.SecondLvlIndices[i] = b
-	}
+	copy(p.SecondLvlIndices, dataBytes[2:])
+	// for i, b := range dataBytes[2:] {
+	// 	p.SecondLvlIndices[i] = b
+	// }
 }

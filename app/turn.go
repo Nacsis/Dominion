@@ -37,7 +37,7 @@ func (t *Turn) ToByte() []byte {
 		}
 	}
 
-	dataBytes = append(dataBytes, byte(actionCounter))
+	dataBytes = append(dataBytes, byte(actionCounter)) // byte sufficient as length here!
 
 	for k, v := range t.PossibleActions {
 		if v {
@@ -45,7 +45,7 @@ func (t *Turn) ToByte() []byte {
 		}
 	}
 	dataBytes = append(dataBytes, t.Params.ToByte()...)
-	return append([]byte{byte(len(dataBytes))}, dataBytes...)
+	return util.AppendLength(dataBytes)
 }
 
 // Of create Turn out of a bytes
@@ -54,12 +54,13 @@ func (t *Turn) Of(dataBytes []byte) {
 	t.PerformedAction = util.GeneralTypesOfActions(dataBytes[1])
 	t.MandatoryPartFulfilled = util.ByteToBool(dataBytes[2])
 
-	lengthActions := dataBytes[3]
+	lengthActions := dataBytes[3] // byte exceptionally used as legth here (see above)!
 
 	t.PossibleActions = [util.GameEnd]bool{}
 
 	for _, k := range dataBytes[4 : 4+lengthActions] {
 		t.PossibleActions[k] = true
 	}
-	t.Params.Of(dataBytes[5+lengthActions:]) // skip length at 4+lengthActions because not necessary here
+	_, dataBytes = util.PopLength(dataBytes[4+lengthActions:])
+	t.Params.Of(dataBytes)
 }

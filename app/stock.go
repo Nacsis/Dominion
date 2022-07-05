@@ -20,7 +20,7 @@ func (s *Stock) ToByte() []byte {
 		dataBytes = append(dataBytes, trash)
 	}
 
-	return append([]byte{byte(len(dataBytes))}, dataBytes...)
+	return util.AppendLength(dataBytes)
 }
 
 // Of create Stock out of a bytes
