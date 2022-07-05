@@ -33,8 +33,8 @@ func (p *Params) ToByte() []byte {
 func (p *Params) Of(dataBytes []byte) {
 	p.MainTarget = util.CardType(dataBytes[0])
 	p.SecondLvlTarget = util.CardType(dataBytes[1])
-	p.SecondLvlIndices = make([]uint8, 0)
-	for _, b := range dataBytes[2:] {
-		p.SecondLvlIndices = append(p.SecondLvlIndices, b)
+	p.SecondLvlIndices = make([]uint8, len(dataBytes)-2)
+	for i, b := range dataBytes[2:] {
+		p.SecondLvlIndices[i] = b
 	}
 }

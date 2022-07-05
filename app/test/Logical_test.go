@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"perun.network/perun-examples/dominion-cli/app"
 	"perun.network/perun-examples/dominion-cli/app/util"
+	"strings"
 	"testing"
 )
 
@@ -28,6 +29,54 @@ func setUpPlayAction(cardType []util.CardType) app.DominionAppData {
 	}
 	data.Turn.SetAllowed(util.PlayCard)
 	return data
+}
+
+func Test_Encode_Decode(t *testing.T) {
+	before := app.DominionAppData{
+		Turn: app.Turn{
+			NextActor:              1,
+			PerformedAction:        2,
+			MandatoryPartFulfilled: false,
+			PossibleActions:        [8]bool{true, false, true, false, true, false, true, false},
+			Params: app.Params{
+				MainTarget:       3,
+				SecondLvlTarget:  4,
+				SecondLvlIndices: []byte{5, 4, 3, 2, 1},
+			},
+		},
+		Stock: app.Stock{
+			CardAmounts: [16]uint8{10, 20, 30, 40, 30, 20, 10, 9, 8, 7, 6, 6, 5, 4, 12, 1},
+			Trash:       [16]uint8{11, 21, 31, 41, 31, 21, 11, 1, 2, 3, 4, 5, 6, 7, 11, 2},
+		},
+		CardDecks: [2]app.Deck{{
+			MainPile:      app.Pile{Cards: []app.Card{cardOfType(util.Copper), cardOfType(util.Mine)}},
+			HandPile:      app.Pile{Cards: []app.Card{cardOfType(util.Copper), cardOfType(util.Mine)}},
+			DiscardedPile: app.Pile{Cards: []app.Card{cardOfType(util.Copper), cardOfType(util.Mine)}},
+			PlayedPile:    app.Pile{Cards: []app.Card{cardOfType(util.Copper), cardOfType(util.Mine)}},
+			Resources:     [4]uint8{4, 3, 2, 1}}, {
+
+			MainPile:      app.Pile{Cards: []app.Card{cardOfType(util.Copper), cardOfType(util.Mine)}},
+			HandPile:      app.Pile{Cards: []app.Card{cardOfType(util.Copper), cardOfType(util.Mine)}},
+			DiscardedPile: app.Pile{Cards: []app.Card{cardOfType(util.Copper), cardOfType(util.Mine)}},
+			PlayedPile:    app.Pile{Cards: []app.Card{cardOfType(util.Copper), cardOfType(util.Mine)}},
+			Resources:     [4]uint8{0, 0, 1, 0},
+		},
+		},
+		Rng: app.RNG{
+			ImageA:    [256]byte{},
+			PreImageB: [1028]byte{},
+			PreImageA: [1028]byte{},
+		},
+	}
+
+	after := before.Clone()
+
+	s := strings.Builder{}
+	after.Encode(&s)
+	app := app.DominionApp{}
+	after, _ = app.DecodeData(strings.NewReader(s.String()))
+
+	print("done)")
 }
 
 func Test_Play_Cellar(t *testing.T) {

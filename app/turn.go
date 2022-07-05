@@ -1,6 +1,8 @@
 package app
 
-import "perun.network/perun-examples/dominion-cli/app/util"
+import (
+	"perun.network/perun-examples/dominion-cli/app/util"
+)
 
 type Turn struct {
 	NextActor              uint8
@@ -52,10 +54,12 @@ func (t *Turn) Of(dataBytes []byte) {
 	t.PerformedAction = util.GeneralTypesOfActions(dataBytes[1])
 	t.MandatoryPartFulfilled = util.ByteToBool(dataBytes[2])
 
+	lengthActions := dataBytes[3]
+
 	t.PossibleActions = [util.GameEnd]bool{}
 
-	for _, k := range dataBytes[4 : 4+dataBytes[3]] {
+	for _, k := range dataBytes[4 : 4+lengthActions] {
 		t.PossibleActions[k] = true
 	}
-	t.Params.Of(dataBytes[4+dataBytes[3]:])
+	t.Params.Of(dataBytes[5+lengthActions:]) // skip length at 4+lengthActions because not necessary here
 }
