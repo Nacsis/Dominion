@@ -2,9 +2,11 @@ package test
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"perun.network/perun-examples/dominion-cli/app"
 	"perun.network/perun-examples/dominion-cli/app/util"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -63,9 +65,9 @@ func Test_Encode_Decode(t *testing.T) {
 		},
 		},
 		Rng: app.RNG{
-			ImageA:    [util.HashSizeByte]byte{},
-			PreImageB: [util.PreImageSizeByte]byte{},
-			PreImageA: [util.PreImageSizeByte]byte{},
+			ImageA:    [util.HashSizeByte]byte{1},
+			PreImageB: [util.PreImageSizeByte]byte{1},
+			PreImageA: [util.PreImageSizeByte]byte{1},
 		},
 	}
 
@@ -73,20 +75,35 @@ func Test_Encode_Decode(t *testing.T) {
 
 	s := strings.Builder{}
 	after.Encode(&s)
+	//println(s.String())
+	//s.WriteString("asdf")
+	//println(s.String())
 	app2 := app.DominionApp{}
-	after2, _ := app2.DecodeData(strings.NewReader(s.String()))
+	stateReader := strings.NewReader(s.String())
+	after2, _ := app2.DecodeData(stateReader)
+
+	/*
+		println(stateReader.Len())
+		buf := make([]byte, stateReader.Len())
+		io.ReadFull(stateReader, buf)
+		println(buf)
+
+
+	*/
 	after3 := after2.(*app.DominionAppData)
 	after3.Clone()
 
-	/*
-		assert.Equal(t, true, true)
-		assert.Equal(t, reflect.DeepEqual(before.Turn, after3.Turn), true)
-		assert.Equal(t, reflect.DeepEqual(before.Stock, after3.Stock), true)
-		assert.Equal(t, reflect.DeepEqual(before.CardDecks, after3.CardDecks), true)
-		assert.Equal(t, reflect.DeepEqual(before.Rng, after3.Rng), true)
-		assert.Equal(t, reflect.DeepEqual(before, after3), true)
+	fmt.Printf("%+v", before)
+	println("bla")
+	fmt.Printf("%+v", after3)
+	println("bla")
 
-	*/
+	println(reflect.DeepEqual(before.Turn, after3.Turn))
+	println(reflect.DeepEqual(before.Stock, after3.Stock))
+	println(reflect.DeepEqual(before.CardDecks, after3.CardDecks))
+	println(reflect.DeepEqual(before.Rng, after3.Rng))
+	println(reflect.DeepEqual(before, *after3))
+
 	print("done")
 }
 

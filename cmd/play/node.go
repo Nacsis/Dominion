@@ -235,9 +235,9 @@ func (n *node) HandleProposal(prop client.ChannelProposal, res *client.ProposalR
 	}
 
 	// Ensure the ledger channel proposal includes the expected app.
-	// if !req.App.Def().Equals(n.app.Def()) {  // not yet working, requires withApp in Open() in order to actually include an app in the proposal (see below)
-	// 	log.Fatal("Invalid app type ")
-	// }
+	if !req.App.Def().Equals(n.app.Def()) { // not yet working, requires withApp in Open() in order to actually include an app in the proposal (see below)
+		log.Fatal("Invalid app type ")
+	}
 
 	// Check that we have the correct number of participants.
 	if len(req.Peers) != 2 {
@@ -318,16 +318,16 @@ func (n *node) Open(args []string) error {
 	}
 
 	// TODO add and init app
-	// firstActorIdx := channel.Index(0)
-	// withApp := client.WithApp(n.app, n.app.Init(firstActorIdx))
+	firstActorIdx := channel.Index(0)
+	withApp := client.WithApp(n.app, n.app.Init(firstActorIdx))
 
 	prop, err := client.NewLedgerChannelProposal(
 		config.Channel.ChallengeDurationSec,
 		n.offChain.Address(),
 		initBals,
 		[]wire.Address{n.onChain.Address(), peer.perunID},
-		client.WithRandomNonce(), // what's that for?
-		// withApp,  // not yet working on peer...
+		//client.WithRandomNonce(), // what's that for?
+		withApp, // not yet working on peer...
 	)
 	if err != nil {
 		return errors.WithMessage(err, "creating channel proposal")
