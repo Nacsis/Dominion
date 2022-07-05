@@ -319,7 +319,7 @@ func (n *node) Open(args []string) error {
 		Balances: [][]*big.Int{etherToWei(myBalEth, peerBalEth)},
 	}
 
-	// TODO add and init app
+	// TODO check first actor is opener?
 	firstActorIdx := channel.Index(0)
 	withApp := client.WithApp(n.app, n.app.Init(firstActorIdx))
 
@@ -328,8 +328,7 @@ func (n *node) Open(args []string) error {
 		n.offChain.Address(),
 		initBals,
 		[]wire.Address{n.onChain.Address(), peer.perunID},
-		//client.WithRandomNonce(), // what's that for?
-		withApp, // not yet working on peer...
+		withApp,
 	)
 	if err != nil {
 		return errors.WithMessage(err, "creating channel proposal")
