@@ -7,6 +7,7 @@ package play
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"os"
@@ -22,6 +23,7 @@ import (
 	"github.com/pkg/errors"
 
 	echannel "perun.network/go-perun/backend/ethereum/channel"
+	cherrors "perun.network/go-perun/backend/ethereum/channel/errors"
 	ewallet "perun.network/go-perun/backend/ethereum/wallet"
 	phd "perun.network/go-perun/backend/ethereum/wallet/hd"
 	"perun.network/go-perun/channel"
@@ -233,13 +235,33 @@ func validateAssetHolder(cb echannel.ContractBackend, adjAddr common.Address) (c
 	return assAddr, echannel.ValidateAssetHolderETH(ctx, cb, assAddr, adjAddr)
 }
 
+// validate contract bytecode on blockchain
+// see echannel.asset.go
+func validateContract(ctx context.Context,
+	backend bind.ContractCaller, contract common.Address, bytecode string) error {
+	code, err := backend.CodeAt(ctx, contract, nil)
+	if err != nil {
+		err = cherrors.CheckIsChainNotReachableError(err)
+		return errors.WithMessage(err, "fetching contract code")
+	}
+	if hex.EncodeToString(code) != bytecode {
+		return errors.Wrap(echannel.ErrInvalidContractCode, "incorrect contract code")
+	}
+	return nil
+}
+
+func validateAppContractETH(ctx context.Context,
+	backend bind.ContractCaller, appAddr common.Address) error {
+	return validateContract(ctx, backend, appAddr, dominionApp.DominionAppBinRuntime)
+}
+
 // TODO IMPLEMENT!
 func validateAppContract(cb echannel.ContractBackend) (common.Address, error) {
-	// ctx, cancel := newTransactionContext()
-	// defer cancel()
+	ctx, cancel := newTransactionContext()
+	defer cancel()
 
 	appAddr := config.Chain.appContract
-	return appAddr, nil // TODO verify dominionApp
+	return appAddr, validateAppContractETH(ctx, cb, appAddr)
 }
 
 // deployAdjudicator deploys the Adjudicator to the blockchain and returns its address
