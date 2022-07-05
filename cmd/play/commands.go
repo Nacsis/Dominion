@@ -50,11 +50,6 @@ func init() {
 			// 	"Close a the channel with the given peer. This will push the latest state to the block chain.\nExample: close alice",
 			// 	func(args []string) error { return backend.Close(args) },
 		}, {
-			"start",
-			nil,
-			"Start the interactive Dominion Game.",
-			func(args []string) error { return backend.Start(args) },
-		}, {
 			"config",
 			nil,
 			"Print the current configuration and known peers.",

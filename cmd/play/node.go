@@ -348,51 +348,6 @@ func (n *node) Open(args []string) error {
 	return nil
 }
 
-func (n *node) Start(args []string) error {
-	n.mtx.Lock()
-	defer n.mtx.Unlock()
-
-	// peer.ch.
-
-	return nil
-}
-
-// func (n *node) Send(args []string) error {
-// 	n.mtx.Lock()
-// 	defer n.mtx.Unlock()
-// 	n.log.Traceln("Sending...")
-
-// 	peer := n.peers[args[0]]
-// 	if peer == nil {
-// 		return errors.Errorf("peer not found %s", args[0])
-// 	} else if peer.ch == nil {
-// 		return errors.Errorf("connect to peer first")
-// 	}
-// 	amountEth, _ := new(big.Float).SetString(args[1]) // Input was already validated by command parser.
-// 	return peer.ch.sendMoney(etherToWei(amountEth)[0])
-// }
-
-// func (n *node) Close(args []string) error {
-// 	n.mtx.Lock()
-// 	defer n.mtx.Unlock()
-// 	n.log.Traceln("Closing...")
-
-// 	alias := args[0]
-// 	peer := n.peers[alias]
-// 	if peer == nil {
-// 		return errors.Errorf("Unknown peer: %s", alias)
-// 	}
-// 	if err := peer.ch.sendFinal(); err != nil {
-// 		return errors.WithMessage(err, "sending final state for state closing")
-// 	}
-
-// 	if err := n.settle(peer); err != nil {
-// 		return errors.WithMessage(err, "settling")
-// 	}
-// 	fmt.Printf("\r🏁 Settled channel with %s.\n", peer.alias)
-// 	return nil
-// }
-
 func (n *node) settle(p *peer) error {
 	p.log.Debug("Settling")
 	ctx, cancel := context.WithTimeout(context.Background(), config.Channel.SettleTimeout)
