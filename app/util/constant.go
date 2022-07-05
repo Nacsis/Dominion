@@ -63,8 +63,8 @@ const (
 
 	//------------------------ Crypto / Framework ------------------------
 
-	HashSize     uint16 = 256 / 8
-	PreImageSize uint16 = 1028
+	HashSizeByte     uint16 = 32
+	PreImageSizeByte uint16 = 128
 
 	//------------------------ Card ------------------------
 

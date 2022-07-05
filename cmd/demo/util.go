@@ -150,7 +150,7 @@ func (l balanceLogger) LogBalances(clients ...*client.AppClient) {
 
 func DrawInitHand(drawer, other *client.DominionChannel) {
 	for i := 0; i < 5; i++ {
-		var alicePreimage = util.SliceToPreImageByte(global.RandomBytes(util.PreImageSize))
+		var alicePreimage = util.SliceToPreImageByte(global.RandomBytes(util.PreImageSizeByte))
 		log.Println(len(alicePreimage))
 		drawer.RngCommit(alicePreimage)
 		other.RngTouch()

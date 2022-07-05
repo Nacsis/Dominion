@@ -13,14 +13,14 @@ func ByteToBool(b byte) bool {
 	return b == 1
 }
 
-func SliceToHashByte(slice []byte) [HashSize]byte {
-	var byteWithFixSize [HashSize]byte
-	copy(byteWithFixSize[:HashSize], slice)
+func SliceToHashByte(slice []byte) [HashSizeByte]byte {
+	var byteWithFixSize [HashSizeByte]byte
+	copy(byteWithFixSize[:HashSizeByte], slice)
 	return byteWithFixSize
 }
 
-func SliceToPreImageByte(slice []byte) [PreImageSize]byte {
-	var byteWithFixSize [PreImageSize]byte
-	copy(byteWithFixSize[:PreImageSize], slice)
+func SliceToPreImageByte(slice []byte) [PreImageSizeByte]byte {
+	var byteWithFixSize [PreImageSizeByte]byte
+	copy(byteWithFixSize[:PreImageSizeByte], slice)
 	return byteWithFixSize
 }

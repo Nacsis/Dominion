@@ -6,12 +6,12 @@ import (
 )
 
 // Commit calculate and set  image A
-func (r *RNG) Commit(preImage [util.PreImageSize]byte) error {
+func (r *RNG) Commit(preImage [util.PreImageSizeByte]byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "Commit", FileName: util.ErrorConstRNG}
 
-	r.PreImageB = [util.PreImageSize]byte{}
-	r.PreImageA = [util.PreImageSize]byte{}
-	r.ImageA = [util.HashSize]byte{}
+	r.PreImageB = [util.PreImageSizeByte]byte{}
+	r.PreImageA = [util.PreImageSizeByte]byte{}
+	r.ImageA = [util.HashSizeByte]byte{}
 
 	var err error
 	r.ImageA, err = global.ToImage(preImage)
@@ -30,12 +30,12 @@ func (r *RNG) Touch() error {
 		return errorInfo.ThrowError("ImageA is not set")
 	}
 
-	r.PreImageB = util.SliceToPreImageByte(global.RandomBytes(util.PreImageSize))
+	r.PreImageB = util.SliceToPreImageByte(global.RandomBytes(util.PreImageSizeByte))
 	return nil
 }
 
 // Release update preimage A
-func (r *RNG) Release(preImageA [util.PreImageSize]byte) error {
+func (r *RNG) Release(preImageA [util.PreImageSizeByte]byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "Release", FileName: util.ErrorConstRNG}
 
 	if len(r.PreImageB) == 0 {

@@ -63,9 +63,9 @@ func Test_Encode_Decode(t *testing.T) {
 		},
 		},
 		Rng: app.RNG{
-			ImageA:    [256]byte{},
-			PreImageB: [1028]byte{},
-			PreImageA: [1028]byte{},
+			ImageA:    [util.HashSizeByte]byte{},
+			PreImageB: [util.PreImageSizeByte]byte{},
+			PreImageA: [util.PreImageSizeByte]byte{},
 		},
 	}
 
