@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/client"
@@ -15,7 +16,8 @@ import (
 // DominionChannel is a wrapper for a Perun channel for the Dominion app use case.
 type DominionChannel struct {
 	*client.Channel
-	log log.Logger
+	log     log.Logger
+	timeout time.Duration
 }
 
 func (g *DominionChannel) GetAppStateDataEncoded() []byte {
@@ -29,11 +31,16 @@ func (g *DominionChannel) GetAppStateData() *app.DominionAppData {
 }
 
 // NewDominionChannel creates a new Dominion app channel.
-func NewDominionChannel(ch *client.Channel) *DominionChannel {
+func NewDominionChannel(ch *client.Channel, t time.Duration) *DominionChannel {
 	return &DominionChannel{
 		Channel: ch,
 		log:     log.WithField("channel", ch.ID()),
+		timeout: t,
 	}
+}
+
+func (ch *DominionChannel) GetTimeout() time.Duration {
+	return ch.timeout
 }
 
 // Settle settles the app channel and withdraws the funds.

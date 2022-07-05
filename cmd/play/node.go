@@ -138,8 +138,7 @@ func (n *node) setupChannel(ch *client.Channel) {
 		return
 	}
 
-	// p.ch = newPaymentChannel(ch)
-	p.ch = dominionClient.NewDominionChannel(ch)
+	p.ch = dominionClient.NewDominionChannel(ch, config.Channel.Timeout)
 
 	// Start watching.
 	go func() {
@@ -213,8 +212,7 @@ func (n *node) HandleUpdate(_ *channel.State, update client.ChannelUpdate, resp 
 		log.Error("Channel for ID not found")
 		return
 	}
-	// TODO verify security valid transition etc -> already done by perun? just print performed action, etc?
-	// maybe auto-do mandatory alternativeless actions or print available options?
+
 	ch.Handle(update, resp)
 }
 
@@ -283,10 +281,14 @@ func (n *node) HandleProposal(prop client.ChannelProposal, res *client.ProposalR
 		if userInput == "y" {
 			fmt.Printf("✅ Channel proposal accepted. Opening channel...\n")
 			a := req.Accept(n.offChain.Address(), client.WithRandomNonce())
-			if _, err := res.Accept(ctx, a); err != nil {
+			ch, err := res.Accept(ctx, a)
+			if err != nil {
 				n.log.Error(errors.WithMessage(err, "accepting channel proposal"))
 				return
 			}
+
+			ch.OnUpdate(n.OnUpdate)
+
 		} else {
 			fmt.Printf("❌ Channel proposal rejected\n")
 			if err := res.Reject(ctx, "rejected by user"); err != nil {
@@ -345,6 +347,8 @@ func (n *node) Open(args []string) error {
 	if n.channel(ch.ID()) == nil {
 		return errors.New("OnNewChannel handler could not setup channel")
 	}
+
+	ch.OnUpdate(n.OnUpdate)
 	return nil
 }
 

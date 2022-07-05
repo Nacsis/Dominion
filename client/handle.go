@@ -77,7 +77,7 @@ func (c *AppClient) HandleProposal(p client.ChannelProposal, r *client.ProposalR
 	// Start the on-chain event watcher. It automatically handles disputes.
 	c.startWatching(ch)
 
-	c.channels <- NewDominionChannel(ch)
+	c.channels <- NewDominionChannel(ch, 30*time.Second)
 }
 
 // HandleUpdate is the callback for incoming channel updates.
@@ -99,14 +99,12 @@ func (c *AppClient) HandleAdjudicatorEvent(e channel.AdjudicatorEvent) {
 // HANDLE game updates/transitions
 // ---------------------------
 
-// TODO use AppClient instead?
 func (ch *DominionChannel) Handle(update client.ChannelUpdate, res *client.UpdateResponder) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) //config.Channel.Timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), ch.timeout)
 	defer cancel()
-	// TODO CHECK TRANSITION VALID?! currently acception every proposal...
-	if false /* err := assertValidTransition(ch.lastState, update.State, update.ActorIdx); err != nil*/ {
-		res.Reject(ctx, "invalid transition")
-	} else if err := res.Accept(ctx); err != nil {
+	// Transitions already checked by perun via ValidTransition func
+	// can always be accepted
+	if err := res.Accept(ctx); err != nil {
 		ch.log.Error(errors.WithMessage(err, "handling state update"))
 	}
 
