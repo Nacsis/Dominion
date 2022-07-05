@@ -69,14 +69,25 @@ func Test_Encode_Decode(t *testing.T) {
 		},
 	}
 
-	after := before.Clone()
+	after := before.Clone2DominionAppData()
 
 	s := strings.Builder{}
 	after.Encode(&s)
-	app := app.DominionApp{}
-	after, _ = app.DecodeData(strings.NewReader(s.String()))
+	app2 := app.DominionApp{}
+	after2, _ := app2.DecodeData(strings.NewReader(s.String()))
+	after3 := after2.(*app.DominionAppData)
+	after3.Clone()
 
-	print("done)")
+	/*
+		assert.Equal(t, true, true)
+		assert.Equal(t, reflect.DeepEqual(before.Turn, after3.Turn), true)
+		assert.Equal(t, reflect.DeepEqual(before.Stock, after3.Stock), true)
+		assert.Equal(t, reflect.DeepEqual(before.CardDecks, after3.CardDecks), true)
+		assert.Equal(t, reflect.DeepEqual(before.Rng, after3.Rng), true)
+		assert.Equal(t, reflect.DeepEqual(before, after3), true)
+
+	*/
+	print("done")
 }
 
 func Test_Play_Cellar(t *testing.T) {

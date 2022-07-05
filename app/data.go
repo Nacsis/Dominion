@@ -56,6 +56,13 @@ func (d *DominionAppData) Clone() channel.Data {
 	return &fromDataClone
 }
 
+func (d *DominionAppData) Clone2DominionAppData() *DominionAppData {
+	origJSON, _ := json.Marshal(d)
+	fromDataClone := DominionAppData{}
+	json.Unmarshal(origJSON, &fromDataClone)
+	return &fromDataClone
+}
+
 // Init sets up initial game state
 func (d *DominionAppData) Init(firstActor channel.Index) error {
 	errorInfo := util.ErrorInfo{FunctionName: "ValidatePreImage", FileName: util.ErrorConstDATA}
