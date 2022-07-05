@@ -31,7 +31,7 @@ func (s *Stock) Of(dataBytes []byte) {
 		s.CardAmounts[i] = dataBytes[i]
 	}
 	for i := 0; i < len(s.Trash); i++ {
-		s.Trash[i] = dataBytes[i]
+		s.Trash[i] = dataBytes[util.CardTypeCount+i]
 	}
 }
 
