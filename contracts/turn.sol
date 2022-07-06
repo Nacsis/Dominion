@@ -15,8 +15,9 @@ library TurnLib {
 
     function oof(byte[] memory data) internal pure returns (Turn memory){
         bool[] memory possibleActions = new bool[](uint8(Constant.GeneralTypesOfActions.GameEnd));
-        for (uint8 i = 0; i < data.length - 3; i++) {
-            possibleActions[i] = Convert.ByteToBool(data[3 + i]);
+        uint8 lengthAction = uint8(data[3]);
+        for (uint8 i = 0; i < lengthAction; i++) {
+            possibleActions[i] = Convert.ByteToBool(data[4 + i]);
         }
 
         return Turn(uint8(data[0]),

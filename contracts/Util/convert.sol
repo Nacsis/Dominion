@@ -40,7 +40,7 @@ library Convert {
         return array;
     }
 
-    function bytesToUint(bytes memory b) public pure returns (uint256 value){
+    function bytesToUint(bytes memory b) internal pure returns (uint256 value){
         assembly {
             value := mload(add(b, 0x20)) // Magic
         }

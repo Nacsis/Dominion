@@ -1,6 +1,5 @@
 pragma solidity ^0.7.0;
 
-import "../../data.sol";
 import "./data.sol";
 import "./Util/constant.sol";
 import "./rng.sol";
