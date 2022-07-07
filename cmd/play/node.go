@@ -9,8 +9,10 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"os"
 	"strconv"
 	"sync"
+	"text/tabwriter"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
@@ -27,6 +29,7 @@ import (
 	wirenet "perun.network/go-perun/wire/net"
 	"perun.network/go-perun/wire/net/simple"
 	"perun.network/perun-examples/dominion-cli/app"
+	"perun.network/perun-examples/dominion-cli/app/util"
 	dominionClient "perun.network/perun-examples/dominion-cli/client"
 )
 
@@ -368,35 +371,73 @@ func (n *node) settle(p *peer) error {
 	return nil
 }
 
-// // Info prints the phase of all channels.
-// func (n *node) Info(args []string) error {
-// 	n.mtx.Lock()
-// 	defer n.mtx.Unlock()
-// 	n.log.Traceln("Info...")
+// Info prints the phase of all channels.
+func (n *node) Info(args []string) error {
+	n.mtx.Lock()
+	defer n.mtx.Unlock()
+	n.log.Traceln("Info...")
 
-// 	ctx, cancel := context.WithTimeout(context.Background(), config.Chain.TxTimeout)
-// 	defer cancel()
-// 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.Debug)
-// 	fmt.Fprintf(w, "Peer\tPhase\tVersion\tMy Ξ\tPeer Ξ\tMy On-Chain Ξ\tPeer On-Chain Ξ\t\n")
-// 	for alias, peer := range n.peers {
-// 		onChainBals, err := getOnChainBal(ctx, n.onChain.Address(), peer.perunID)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		onChainBalsEth := weiToEther(onChainBals...)
-// 		if peer.ch == nil {
-// 			fmt.Fprintf(w, "%s\t%s\t \t \t \t%v\t%v\t\n", alias, "Connected", onChainBalsEth[0], onChainBalsEth[1])
-// 		} else {
-// 			bals := weiToEther(peer.ch.GetBalances())
-// 			fmt.Fprintf(w, "%s\t%v\t%d\t%v\t%v\t%v\t%v\t\n",
-// 				alias, peer.ch.Phase(), peer.ch.State().Version, bals[0], bals[1], onChainBalsEth[0], onChainBalsEth[1])
-// 		}
-// 	}
-// 	fmt.Fprintln(w)
-// 	w.Flush()
+	fmt.Print("Channel Info:\n")
+	if err := n.infoChannel(); err != nil {
+		return err
+	}
 
-// 	return nil
-// }
+	fmt.Print("Game Info:\n")
+	if err := n.infoGame(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (n *node) infoGame() error {
+	n.log.Traceln("infoGame...")
+
+	for _, peer := range n.peers { // TODO different access approach in >2 peers channel
+		data := peer.ch.GetAppStateData()
+
+		turn := data.Turn
+		nextActor := n.playerAlias(channel.Index(turn.NextActor))
+		pa := util.PrettyPossibleActions(turn.PossibleActions)
+		resources := util.PrettyResources(data.CardDecks[turn.NextActor].Resources)
+
+		fmt.Printf("  Next Actor: %v\n", nextActor)
+		fmt.Printf("  Initial Cards drawn: %v\n", turn.MandatoryPartFulfilled)
+		fmt.Printf("  Possible Actions: %v\n", pa)
+		fmt.Printf("  Ressources: %v\n", resources)
+
+		fmt.Println()
+		// fmt.Printf("AppData: \n%+v\n", data)
+	}
+	return nil
+}
+
+func (n *node) infoChannel() error {
+	n.log.Traceln("infoChannel...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), config.Chain.TxTimeout)
+	defer cancel()
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.Debug)
+	fmt.Fprintf(w, "Peer\tPhase\tVersion\tMy Ξ\tPeer Ξ\tMy On-Chain Ξ\tPeer On-Chain Ξ\t\n")
+	for alias, peer := range n.peers {
+		onChainBals, err := getOnChainBal(ctx, n.onChain.Address(), peer.perunID)
+		if err != nil {
+			return err
+		}
+		onChainBalsEth := weiToEther(onChainBals...)
+		if peer.ch == nil {
+			fmt.Fprintf(w, "%s\t%s\t \t \t \t%v\t%v\t\n", alias, "Connected", onChainBalsEth[0], onChainBalsEth[1])
+		} else {
+			bals := weiToEther(peer.ch.GetBalances())
+			fmt.Fprintf(w, "%s\t%v\t%d\t%v\t%v\t%v\t%v\t\n",
+				alias, peer.ch.Phase(), peer.ch.State().Version, bals[0], bals[1], onChainBalsEth[0], onChainBalsEth[1])
+		}
+	}
+	fmt.Fprintln(w)
+	w.Flush()
+
+	return nil
+}
 
 func (n *node) Exit([]string) error {
 	n.mtx.Lock()

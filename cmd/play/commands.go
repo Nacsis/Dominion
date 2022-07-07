@@ -56,11 +56,11 @@ func init() {
 			func([]string) error { return backend.PrintConfig() },
 		}, {
 			// TODO include print game state
-			// 	"info",
-			// 	nil,
-			// 	"Print information about funds, peers, and channels.",
-			// 	func(args []string) error { return backend.Info(args) },
-			// }, {
+			"info",
+			nil,
+			"Print information about funds, peers, and channels.",
+			func(args []string) error { return backend.Info(args) },
+		}, {
 			"help",
 			nil,
 			"Prints all possible commands.",

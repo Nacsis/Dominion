@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"strings"
 	"time"
 
@@ -58,6 +59,34 @@ func (g *DominionChannel) SettleAndClose() {
 		return
 	}
 }
+
+//------------------------ Funds and Balances ------------------------
+
+func stateBals(state *channel.State) []channel.Bal {
+	return state.Balances[0]
+}
+
+func (ch *DominionChannel) GetBalances() (our, other *big.Int) {
+	bals := stateBals(ch.State())
+	if len(bals) != 2 {
+		return new(big.Int), new(big.Int)
+	}
+	return bals[ch.Idx()], bals[1-ch.Idx()]
+}
+
+//------------------------ RNG ------------------------
+
+// func stateGameState(state *channel.State) (*app.DominionAppData, error) {
+// 	dominionAppData, ok := state.Data.(*app.DominionAppData)
+// 	if !ok {
+// 		return nil, errors.New("state.Data could not be castet to *app.DominionAppData")
+// 	}
+// 	return dominionAppData, nil
+// }
+
+// func (ch *DominionChannel) GetGameState() (*app.DominionAppData, error) {
+// 	return stateGameState(ch.State())
+// }
 
 //------------------------ RNG ------------------------
 
