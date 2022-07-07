@@ -17,8 +17,8 @@ library Constant {
 
     //------------------------ Crypto / Framework ------------------------
 
-    uint8 constant HashSize = 20;
-    uint16 constant PreImageSize = 1028;
+    uint8 constant HashSize = 32;
+    uint16 constant PreImageSize = 128;
 
     //------------------------ Card ------------------------
 
