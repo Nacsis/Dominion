@@ -66,8 +66,12 @@ func init() {
 			func(args []string) error { return backend.Start() },
 		}, {
 			"play",
-			[]argument{{"Card Name", valCard}},
-			"Play a card. usage: buy [card name]\n Card name is not case sensitive. The first card of matching type will be chosen.",
+			[]argument{{"Card Name or Position", valUintOrCard}, {"Tarteg indices", valUintList}, {"Target card", valCard}},
+			"Play a card. Usage: \n  " +
+				"play [card name]/[card position] [target indices] [target card]\nParams:\n" +
+				"  Card Name or Position:\tThe first card of matching type or position will be chosen. Card name is not case sensitive.\n" +
+				"  Target indices:\t\tTarget card indices in hand. format: comma-seperated, e.g. \"1,5,2\"\n" +
+				"  Target card:\t\tTarget card type",
 			func(args []string) error { return backend.PlayCard(args) },
 		}, {
 			"buy",

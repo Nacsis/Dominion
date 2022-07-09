@@ -224,6 +224,11 @@ func (d *DominionAppData) DrawCard(actorIdx channel.Index) error {
 func (d *DominionAppData) PlayCard(actorIdx channel.Index, playCardIndex uint8, followUpIndices []uint8, followUpCardType util.CardType) error {
 	errorInfo := util.ErrorInfo{FunctionName: "PlayCard", FileName: util.ErrorConstDATA}
 
+	//--- nil cleanup ----
+	if followUpIndices == nil {
+		followUpIndices = make([]uint8, 0)
+	}
+
 	//------ Checks ------
 	if d.Turn.NextActor != uint8(actorIdx) {
 		return errorInfo.ThrowError("Wrong Actor")

@@ -2,7 +2,9 @@ package play
 
 import (
 	"fmt"
+	"strconv"
 
+	"github.com/pkg/errors"
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/wire"
 	"perun.network/perun-examples/dominion-cli/app"
@@ -88,19 +90,49 @@ func (n *node) PlayCard(args []string) error {
 	n.mtx.Lock()
 	defer n.mtx.Unlock()
 	n.log.Traceln("PlayCard...")
-	data := n.GetAppStateData()
+	for _, peer := range n.peers {
 
-	ownTurn := n.ownTurn(data)
+		data := peer.ch.GetAppStateData()
 
-	if ownTurn {
-		fmt.Println("TODO: IMPLEMENT!")
+		ownTurn := n.ownTurn(data)
 
-	} else {
-		firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))
-		fmt.Printf("Not your turn! %s goes next.\n", firstActor)
+		if ownTurn {
+
+			hand := data.CardDecks[peer.ch.Idx()].HandPile
+			cid, err := strconv.Atoi(args[0])
+			if err != nil { // try name
+
+				c, ok := app.NewCard(args[0])
+
+				if !ok {
+					return errors.New("No valid card name")
+				}
+
+				for i, card := range hand.Cards {
+					if c.CardType == card.CardType {
+						cid = i
+					}
+				}
+			} else {
+				if cid >= hand.Length() {
+					return errors.Errorf("No valid position in hand. (wanted: <%v, given: %v)", hand.Length(), cid)
+				}
+			}
+
+			followUpCard, _ := app.NewCard(args[2])
+			followUpIndices, _ := strToUint8List(args[1])
+			// TODO followUpIndices
+			peer.ch.PlayCard(uint8(cid), followUpIndices, followUpCard.CardType)
+
+		} else {
+			firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))
+			fmt.Printf("Not your turn! %s goes next.\n", firstActor)
+		}
+
+		return nil
 	}
 
-	return nil
+	return errors.Errorf("No connected peer.")
 }
 
 // Buy a card. usage: buy [card name]\n Card name is not case sensitive.
@@ -108,19 +140,26 @@ func (n *node) BuyCard(args []string) error {
 	n.mtx.Lock()
 	defer n.mtx.Unlock()
 	n.log.Traceln("BuyCard...")
-	data := n.GetAppStateData()
+	for _, peer := range n.peers {
 
-	ownTurn := n.ownTurn(data)
+		data := peer.ch.GetAppStateData()
 
-	if ownTurn {
-		fmt.Println("TODO: IMPLEMENT!")
+		ownTurn := n.ownTurn(data)
 
-	} else {
-		firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))
-		fmt.Printf("Not your turn! %s goes next.\n", firstActor)
+		if ownTurn {
+
+			c, _ := app.NewCard(args[0])
+			peer.ch.BuyCard(c.CardType)
+
+		} else {
+			firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))
+			fmt.Printf("Not your turn! %s goes next.\n", firstActor)
+		}
+
+		return nil
 	}
 
-	return nil
+	return errors.Errorf("No connected peer.")
 }
 
 // End your turn. If the game is final, EndGame is automatically called instead and settlement and payout are triggered.
@@ -128,17 +167,27 @@ func (n *node) EndTurnOrGame() error {
 	n.mtx.Lock()
 	defer n.mtx.Unlock()
 	n.log.Traceln("EndTurnOrGame...")
-	data := n.GetAppStateData()
+	for _, peer := range n.peers {
 
-	ownTurn := n.ownTurn(data)
+		data := peer.ch.GetAppStateData()
 
-	if ownTurn {
-		fmt.Println("TODO: IMPLEMENT!")
+		ownTurn := n.ownTurn(data)
 
-	} else {
-		firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))
-		fmt.Printf("Not your turn! %s goes next.\n", firstActor)
+		if ownTurn {
+
+			if data.Turn.IsActionAllowed(util.GameEnd) {
+				peer.ch.EndGame()
+			} else {
+				peer.ch.EndTurn()
+			}
+
+		} else {
+			firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))
+			fmt.Printf("Not your turn! %s goes next.\n", firstActor)
+		}
+
+		return nil
 	}
 
-	return nil
+	return errors.Errorf("No connected peer.")
 }

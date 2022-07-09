@@ -11,6 +11,7 @@ import (
 	"math/big"
 	"net"
 	"strconv"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/pkg/errors"
@@ -53,6 +54,37 @@ func valUInt(input string) error {
 	return nil
 }
 
+func valUintList(input string) error {
+	if input == "-" || strings.ToLower(input) == "none" { // empty list
+		return nil
+	} else {
+		values := strings.Split(input, ",")
+		for _, v := range values {
+			if err := valUInt(v); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func strToUint8List(str string) ([]uint8, error) {
+	l := make([]uint8, 0)
+	if str == "-" || strings.ToLower(str) == "none" {
+		return l, nil // SUCCESS: empty list
+	}
+	values := strings.Split(str, ",")
+	for _, v := range values {
+		if num, err := strconv.Atoi(v); err != nil {
+			return nil, errors.Errorf("Invalid element: Invalid Integer \"%s\"", v)
+		} else {
+
+			l = append(l, uint8(num))
+		}
+	}
+	return l, nil // SUCCESS: value list
+}
+
 func valPeer(arg string) error {
 	if !backend.ExistsPeer(arg) {
 		return errors.Errorf("Unknown peer, use 'info' to see connected")
@@ -75,6 +107,17 @@ func valCard(arg string) error {
 		return nil
 	}
 	return errors.Errorf("Unknown card, valid cards (not case sensitive): TODO")
+}
+
+func valUintOrCard(arg string) error {
+
+	if err := valUInt(arg); err != nil {
+		if err := valCard(arg); err != nil {
+			return errors.Errorf("Unknown card or index, choose a position of your hand or a valid card (not case sensitive): TODO")
+		}
+	}
+
+	return nil
 }
 
 // strToAddress parses a string as wallet.Address
