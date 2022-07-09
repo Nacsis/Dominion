@@ -35,7 +35,7 @@ func (n *node) OnUpdate(from, to *channel.State) {
 				if initHandDrawn {
 					fmt.Printf("Hand: %s\n", handCards.Pretty())
 				} else {
-					fmt.Printf("You drew 1 %s.", handCards.Cards[handCards.Length()-1].CardType)
+					fmt.Printf("You drew 1 %s.\n", handCards.Cards[handCards.Length()-1].CardType)
 				}
 			}
 		}

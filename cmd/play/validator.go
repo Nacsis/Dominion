@@ -15,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/pkg/errors"
 	"perun.network/go-perun/wallet"
+	"perun.network/perun-examples/dominion-cli/app"
 )
 
 func valBal(input string) error {
@@ -66,6 +67,14 @@ func valAlias(arg string) error {
 		}
 	}
 	return errors.Errorf("Unknown alias, use 'config' to see available")
+}
+
+func valCard(arg string) error {
+	_, ok := app.NewCard(arg)
+	if ok {
+		return nil
+	}
+	return errors.Errorf("Unknown card, valid cards (not case sensitive): TODO")
 }
 
 // strToAddress parses a string as wallet.Address

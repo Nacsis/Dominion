@@ -67,7 +67,7 @@ func (n *node) drawCardStart() {
 func (n *node) Start() error {
 	n.mtx.Lock()
 	defer n.mtx.Unlock()
-	n.log.Traceln("Info...")
+	n.log.Traceln("Start...")
 	data := n.GetAppStateData()
 
 	ownTurn := n.ownTurn(data)
@@ -77,7 +77,67 @@ func (n *node) Start() error {
 		n.drawCardStart()
 	} else {
 		firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))
-		fmt.Printf("%s needs to start.", firstActor)
+		fmt.Printf("%s needs to start.\n", firstActor)
+	}
+
+	return nil
+}
+
+// Play a card. usage: buy [card name]\n Card name is not case sensitive. The first card of matching type will be chosen.
+func (n *node) PlayCard(args []string) error {
+	n.mtx.Lock()
+	defer n.mtx.Unlock()
+	n.log.Traceln("PlayCard...")
+	data := n.GetAppStateData()
+
+	ownTurn := n.ownTurn(data)
+
+	if ownTurn {
+		fmt.Println("TODO: IMPLEMENT!")
+
+	} else {
+		firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))
+		fmt.Printf("Not your turn! %s goes next.\n", firstActor)
+	}
+
+	return nil
+}
+
+// Buy a card. usage: buy [card name]\n Card name is not case sensitive.
+func (n *node) BuyCard(args []string) error {
+	n.mtx.Lock()
+	defer n.mtx.Unlock()
+	n.log.Traceln("BuyCard...")
+	data := n.GetAppStateData()
+
+	ownTurn := n.ownTurn(data)
+
+	if ownTurn {
+		fmt.Println("TODO: IMPLEMENT!")
+
+	} else {
+		firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))
+		fmt.Printf("Not your turn! %s goes next.\n", firstActor)
+	}
+
+	return nil
+}
+
+// End your turn. If the game is final, EndGame is automatically called instead and settlement and payout are triggered.
+func (n *node) EndTurnOrGame() error {
+	n.mtx.Lock()
+	defer n.mtx.Unlock()
+	n.log.Traceln("EndTurnOrGame...")
+	data := n.GetAppStateData()
+
+	ownTurn := n.ownTurn(data)
+
+	if ownTurn {
+		fmt.Println("TODO: IMPLEMENT!")
+
+	} else {
+		firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))
+		fmt.Printf("Not your turn! %s goes next.\n", firstActor)
 	}
 
 	return nil
