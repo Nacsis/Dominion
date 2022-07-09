@@ -37,14 +37,26 @@ func (s *Stock) Of(dataBytes []byte) {
 
 // Init sets up initial Stock state
 func (s *Stock) Init() {
-	s.CardAmounts[util.Copper] = util.CopperInitialStock
-	s.CardAmounts[util.Silver] = util.SilverInitialStock
-	s.CardAmounts[util.Gold] = util.GoldInitialStock
-	s.CardAmounts[util.VictorySmall] = util.VictorySmallInitialStock
-	s.CardAmounts[util.VictoryMid] = util.VictoryMidInitialStock
-	s.CardAmounts[util.VictoryBig] = util.VictoryBigInitialStock
+	s.CardAmounts[util.Copper-1] = util.CopperInitialStock
+	s.CardAmounts[util.Silver-1] = util.SilverInitialStock
+	s.CardAmounts[util.Gold-1] = util.GoldInitialStock
+	s.CardAmounts[util.VictorySmall-1] = util.VictorySmallInitialStock
+	s.CardAmounts[util.VictoryMid-1] = util.VictoryMidInitialStock
+	s.CardAmounts[util.VictoryBig-1] = util.VictoryBigInitialStock
 
-	for i := 7; i < util.CardTypeCount; i++ {
+	for i := 6; i < util.CardTypeCount; i++ {
 		s.CardAmounts[i] = 10
 	}
+}
+
+func (s *Stock) DecrementBy(ct util.CardType, amount uint8) {
+	s.CardAmounts[int(ct)-1] -= amount // shifted by 1 because CardType NONE(0) has no amount
+}
+
+func (s *Stock) Decrement(ct util.CardType) {
+	s.DecrementBy(ct, 1)
+}
+
+func (s *Stock) GetAmount(ct util.CardType) (amount uint8) {
+	return s.CardAmounts[int(ct)-1] // shifted by 1 because CardType NONE(0) has no amount
 }

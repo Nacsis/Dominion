@@ -31,18 +31,18 @@ func (s *Stock) TakeOffOneInitialDeck() (Pile, error) {
 		}
 	}
 
-	s.CardAmounts[util.Copper] -= util.InitialMoneyCards
-	s.CardAmounts[util.VictorySmall] -= util.InitialVictoryCards
+	s.DecrementBy(util.Copper, util.InitialMoneyCards)
+	s.DecrementBy(util.VictorySmall, util.InitialVictoryCards)
 	return pile, nil
 }
 
 // TakeOffCard takes off card of given CardType
 func (s *Stock) TakeOffCard(cardType util.CardType) (Card, error) {
 	errorInfo := util.ErrorInfo{FunctionName: "TakeOffCard", FileName: util.ErrorConstStock}
-	if s.CardAmounts[cardType] <= 0 {
+	if s.GetAmount(cardType) <= 0 {
 		return Card{}, errorInfo.ThrowError(fmt.Sprint("No more cards of Type %T available", cardType))
 	}
-	s.CardAmounts[cardType]--
+	s.Decrement(cardType)
 	card := Card{}
 	card.Of([]byte{byte(cardType)})
 	return card, nil
@@ -50,7 +50,7 @@ func (s *Stock) TakeOffCard(cardType util.CardType) (Card, error) {
 
 // TrashCard trash given card
 func (s *Stock) TrashCard(cardType util.CardType) error {
-	s.Trash[cardType]++
+	s.Trash[int(cardType)-1]++
 	return nil
 }
 
@@ -67,5 +67,5 @@ func (s *Stock) EmptyCardSets() uint8 {
 
 // IsBigVictoryCardEmpty check if VictoryBig stock is empty
 func (s *Stock) IsBigVictoryCardEmpty() bool {
-	return s.CardAmounts[util.VictoryBig] <= 0
+	return s.GetAmount(util.VictoryBig) <= 0
 }
