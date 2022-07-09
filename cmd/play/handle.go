@@ -27,31 +27,27 @@ func (n *node) OnUpdate(from, to *channel.State) {
 	initHandDrawn := toData.Turn.MandatoryPartFulfilled
 	toData.Turn.IsActionAllowed(util.RngCommit)
 	if ownTurn && !initHandDrawn && toData.Turn.IsActionAllowed(util.RngCommit) {
-		n.drawCardStart()
+		go n.drawCardStart()
 		return
 	}
 
-	fmt.Printf("Turn: %+v\n", toData.Turn)
-	fmt.Printf("ownTurn?: %v\n", ownTurn)
 	if toData.Turn.PerformedAction == util.RngCommit && ownTurn {
-		fmt.Println("Should perform RngTouch")
 		for _, peer := range n.peers {
-			fmt.Println("Should REALLY perform RngTouch")
-			peer.ch.RngTouch()
+			go peer.ch.RngTouch()
 			return
 		}
 	}
 
 	if toData.Turn.PerformedAction == util.RngTouch && ownTurn {
 		for _, peer := range n.peers {
-			peer.ch.RngRelease(n.preimage)
+			go peer.ch.RngRelease(n.preimage)
 			return
 		}
 	}
 
 	if toData.Turn.PerformedAction == util.RngRelease && ownTurn {
 		for _, peer := range n.peers {
-			peer.ch.DrawOneCard()
+			go peer.ch.DrawOneCard()
 			return
 		}
 	}

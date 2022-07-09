@@ -232,6 +232,7 @@ func (n *node) channel(id channel.ID) *dominionClient.DominionChannel {
 }
 
 func (n *node) HandleProposal(prop client.ChannelProposal, res *client.ProposalResponder) {
+	n.log.Warn("Proposal recieved...")
 	// Ensure that we got a ledger channel proposal.
 	req, ok := prop.(*client.LedgerChannelProposal)
 	if !ok {
