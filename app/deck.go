@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
@@ -61,4 +63,11 @@ func (d *Deck) Init(initialMainPile Pile) error {
 	d.Resources[util.BuyableCards] = util.InitialBuyResources
 	d.Resources[util.SpendableMoney] = util.InitialMoneyResources
 	return nil
+}
+
+func (d *Deck) Print() {
+	fmt.Printf("  Hand:\t%s\n", d.HandPile.Pretty())
+	fmt.Printf("  Played:\t%s\n", d.PlayedPile.Pretty())
+	fmt.Printf("  Deck size:\t  Main: %v\t  Discarded: %v\t  Total: %v\n", d.MainPile.Length(), d.DiscardedPile.Length(), d.DiscardedPile.Length()+d.MainPile.Length()+d.HandPile.Length()+d.PlayedPile.Length())
+	fmt.Printf("  Victory Points: %v\n", d.VictoryPointInDeck())
 }

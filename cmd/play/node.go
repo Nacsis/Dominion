@@ -382,6 +382,8 @@ func (n *node) Info(args []string) error {
 	defer n.mtx.Unlock()
 	n.log.Traceln("Info...")
 
+	// TODO: select sub sections via args
+
 	fmt.Print("Channel Info:\n")
 	if err := n.infoChannel(); err != nil {
 		return err
@@ -411,16 +413,8 @@ func (n *node) infoGame() error {
 		fmt.Printf("  Possible Actions: %v\n", pa)
 		fmt.Printf("  Ressources: %v\n", resources)
 
-		// fmt.Println()
-		// fmt.Printf("ID:\t%v\n", peer.ch.ID())
-		// fmt.Printf("Idx:\t%v\n", peer.ch.Idx())
-		// fmt.Printf("Params:\t%+v\n", peer.ch.Params())
-		// fmt.Printf("Params.Parts:\t%v\n", peer.ch.Params().Parts)
-		// fmt.Printf("Parts:\t%v\n", peer.ch.Peers())  // just use this...
-		// fmt.Printf("peer:\t%+v\n", peer)
-
-		// fmt.Println()
-		// fmt.Printf("AppData: \n%+v\n", data)
+		// TODO separate?
+		data.CardDecks[peer.ch.Idx()].Print()
 		return nil
 	}
 	return nil

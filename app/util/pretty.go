@@ -59,3 +59,44 @@ func PrettyResources(r [DeckResourcesCount]uint8) map[string]uint8 {
 	}
 	return m
 }
+
+func (e CardType) String() string {
+	switch e {
+	case NONE:
+		return "NONE"
+	case Copper:
+		return "Copper"
+	case Silver:
+		return "Silver"
+	case Gold:
+		return "Gold"
+	case VictorySmall:
+		return "VictorySmall"
+	case VictoryMid:
+		return "VictoryMid"
+	case VictoryBig:
+		return "VictoryBig"
+	case Cellar:
+		return "Cellar"
+	case Market:
+		return "Market"
+	case Oasis:
+		return "Oasis"
+	case Mine:
+		return "Mine"
+	case Remodel:
+		return "Remodel"
+	case Smithy:
+		return "Smithy"
+	case Feast:
+		return "Feast"
+	case Chapel:
+		return "Chapel"
+	case Workshop:
+		return "Workshop"
+	case Village:
+		return "Village"
+	default:
+		return fmt.Sprintf("%d", int(e))
+	}
+}

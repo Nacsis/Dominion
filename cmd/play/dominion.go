@@ -73,7 +73,7 @@ func (n *node) Start() error {
 	ownTurn := n.ownTurn(data)
 	// initHandDrawn := toData.Turn.MandatoryPartFulfilled
 	if ownTurn {
-		fmt.Print("Starting game :)")
+		fmt.Println("Starting game :)")
 		n.drawCardStart()
 	} else {
 		firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))

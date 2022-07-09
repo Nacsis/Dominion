@@ -117,14 +117,14 @@ func (g *DominionChannel) RngTouch() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
-	g.log.Warn("proposing RngTouch...")
+
+	g.log.Debug("proposing RngTouch...")
 	err := g.UpdateBy(ctx, func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
-		g.log.Warn("proposing RngTouch UpdateBy Callback...")
 		return dominionApp.RngTouch(state, g.Idx())
 	})
 	if err != nil {
@@ -138,6 +138,8 @@ func (g *DominionChannel) RngRelease(preImage [util.PreImageSizeByte]byte) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
+
+	g.log.Debug("proposing RngRelease...")
 	err := g.UpdateBy(ctx, func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
@@ -159,6 +161,8 @@ func (g *DominionChannel) DrawOneCard() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
+
+	g.log.Debug("proposing DrawCard...")
 	err := g.UpdateBy(ctx, func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {

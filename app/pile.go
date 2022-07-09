@@ -1,6 +1,10 @@
 package app
 
-import "perun.network/perun-examples/dominion-cli/app/util"
+import (
+	"strings"
+
+	"perun.network/perun-examples/dominion-cli/app/util"
+)
 
 type Pile struct {
 	Cards []Card
@@ -26,4 +30,12 @@ func (p *Pile) Of(dataBytes []byte) {
 // Init sets up initial Pile state
 func (p *Pile) Init() {
 	p.Cards = make([]Card, 0)
+}
+
+func (p *Pile) Pretty() string {
+	cards := make([]string, p.Length())
+	for i, card := range p.Cards {
+		cards[i] = card.CardType.String()
+	}
+	return strings.Join(cards, ", ")
 }
