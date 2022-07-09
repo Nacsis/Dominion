@@ -40,6 +40,9 @@ library Constant {
 
     uint8 constant    MoneyCardPlayCost = 0;
 
+    uint8 constant ActionCardPlayCost = 1;
+    uint8 constant ActionCardVictoryPoint = 0;
+
     uint8 constant    VictorySmallVictoryValue = 1;
     uint8 constant    VictoryMidVictoryValue = 2;
     uint8 constant    VictoryBigVictoryValue = 3;

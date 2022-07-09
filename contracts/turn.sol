@@ -3,6 +3,8 @@ pragma solidity ^0.7.0;
 import "./Util/constant.sol";
 import "./Util/convert.sol";
 import "./data.sol";
+import "./params.sol";
+import "./Util/reader.sol";
 
 
 library TurnLib {
@@ -11,6 +13,7 @@ library TurnLib {
         Constant.GeneralTypesOfActions performedAction;
         bool MandatoryPartFulfilled;
         bool[] possibleActions;
+        ParamsLib.Params params;
     }
 
     function oof(byte[] memory data) internal pure returns (Turn memory){
@@ -20,10 +23,15 @@ library TurnLib {
             possibleActions[i] = Convert.ByteToBool(data[4 + i]);
         }
 
+        uint8 lengthParams = uint8(data[3+lengthAction]);
+        ParamsLib.Params memory params = ParamsLib.oof(Convert.Slice2Array(data, 3+lengthAction+1,data.length));
+
+
         return Turn(uint8(data[0]),
             Constant.GeneralTypesOfActions(uint8(data[1])),
             Convert.ByteToBool(Convert.Slice2Array(data, 2, 3)[0]),
-            possibleActions
+            possibleActions,
+            params
         );
     }
 
@@ -35,6 +43,7 @@ library TurnLib {
         for (uint i = 0; i < a.possibleActions.length; i++) {
             require(a.possibleActions[i] == b.possibleActions[i], "Turn.possibleActions difference");
         }
+        ParamsLib.equal(a.params, b.params);
     }
 
     function setOneAllowed(Turn memory turn, Constant.GeneralTypesOfActions[] memory newPossibleActions) internal pure {
