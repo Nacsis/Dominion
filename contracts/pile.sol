@@ -34,7 +34,7 @@ library PileLib {
     }
 
     function DrawCardBasedOnSeed(PileLib.Pile memory p, byte[] memory seed) internal pure returns (CardLib.Card memory) {
-        uint index = Convert.bytesToUint(Convert.byteArrayToBytes(seed)) % uint64(p.Card.length);
+        uint index = uint64(Convert.bytesToUint(Convert.byteArrayToBytes(seed))) % uint64(p.Card.length);
         CardLib.Card memory card = p.Card[index];
         ResizeCardsWithoutIndex(p, index);
         return card;
