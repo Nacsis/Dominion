@@ -18,6 +18,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
+
+	"github.com/pkg/errors"
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/client"
 )
@@ -74,7 +77,7 @@ func (c *AppClient) HandleProposal(p client.ChannelProposal, r *client.ProposalR
 	// Start the on-chain event watcher. It automatically handles disputes.
 	c.startWatching(ch)
 
-	c.channels <- newDominionChannel(ch)
+	c.channels <- NewDominionChannel(ch, 30*time.Second)
 }
 
 // HandleUpdate is the callback for incoming channel updates.
@@ -90,4 +93,19 @@ func (c *AppClient) HandleUpdate(cur *channel.State, next client.ChannelUpdate, 
 // HandleAdjudicatorEvent is the callback for smart contract events.
 func (c *AppClient) HandleAdjudicatorEvent(e channel.AdjudicatorEvent) {
 	log.Printf("Adjudicator event: type = %T, client = %v", e, c.account)
+}
+
+// ---------------------------
+// HANDLE game updates/transitions
+// ---------------------------
+
+func (ch *DominionChannel) Handle(update client.ChannelUpdate, res *client.UpdateResponder) {
+	ctx, cancel := context.WithTimeout(context.Background(), ch.timeout)
+	defer cancel()
+	// Transitions already checked by perun via ValidTransition func
+	// can always be accepted
+	if err := res.Accept(ctx); err != nil {
+		ch.log.Error(errors.WithMessage(err, "handling state update"))
+	}
+
 }

@@ -2,10 +2,14 @@ package test
 
 import (
 	"encoding/json"
+	"fmt"
+	"reflect"
+	"strings"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"perun.network/perun-examples/dominion-cli/app"
 	"perun.network/perun-examples/dominion-cli/app/util"
-	"testing"
 )
 
 func _init() (app.DominionAppData, error) {
@@ -28,6 +32,99 @@ func setUpPlayAction(cardType []util.CardType) app.DominionAppData {
 	}
 	data.Turn.SetAllowed(util.PlayCard)
 	return data
+}
+
+func Test_Encode_Decode(t *testing.T) {
+	before := app.DominionAppData{
+		Turn: app.Turn{
+			NextActor:              1,
+			PerformedAction:        2,
+			MandatoryPartFulfilled: false,
+			PossibleActions:        [8]bool{true, false, true, false, true, false, true, false},
+			Params: app.Params{
+				MainTarget:       3,
+				SecondLvlTarget:  4,
+				SecondLvlIndices: []byte{5, 4, 3, 2, 1},
+			},
+		},
+		Stock: app.Stock{
+			CardAmounts: [16]uint8{10, 20, 30, 40, 30, 20, 10, 9, 8, 7, 6, 6, 5, 4, 12, 1},
+			Trash:       [16]uint8{11, 21, 31, 41, 31, 21, 11, 1, 2, 3, 4, 5, 6, 7, 11, 2},
+		},
+		CardDecks: [2]app.Deck{{
+			MainPile:      app.Pile{Cards: []app.Card{cardOfType(util.Copper), cardOfType(util.Mine)}},
+			HandPile:      app.Pile{Cards: []app.Card{cardOfType(util.Silver), cardOfType(util.Mine)}},
+			DiscardedPile: app.Pile{Cards: []app.Card{cardOfType(util.Gold), cardOfType(util.Mine)}},
+			PlayedPile:    app.Pile{Cards: []app.Card{cardOfType(util.VictorySmall), cardOfType(util.Mine)}},
+			Resources:     [4]uint8{4, 3, 2, 1}}, {
+
+			MainPile:      app.Pile{Cards: []app.Card{cardOfType(util.VictoryMid), cardOfType(util.Mine)}},
+			HandPile:      app.Pile{Cards: []app.Card{cardOfType(util.VictoryBig), cardOfType(util.Mine)}},
+			DiscardedPile: app.Pile{Cards: []app.Card{cardOfType(util.Copper), cardOfType(util.Mine)}},
+			PlayedPile:    app.Pile{Cards: []app.Card{cardOfType(util.Gold), cardOfType(util.Mine)}},
+			Resources:     [4]uint8{0, 0, 1, 0},
+		},
+		},
+		Rng: app.RNG{
+			ImageA:    [util.HashSizeByte]byte{1},
+			PreImageB: [util.PreImageSizeByte]byte{1},
+			PreImageA: [util.PreImageSizeByte]byte{1},
+		},
+	}
+
+	// ##################################
+	// ------ TEST struct equality ------
+	// ##################################
+
+	after := before.Clone2DominionAppData()
+
+	s := strings.Builder{}
+	after.Encode(&s)
+	//println(s.String())
+	//s.WriteString("asdf")
+	//println(s.String())
+	app2 := app.DominionApp{}
+	stateReader := strings.NewReader(s.String())
+	after2, _ := app2.DecodeData(stateReader)
+
+	/*
+		println(stateReader.Len())
+		buf := make([]byte, stateReader.Len())
+		io.ReadFull(stateReader, buf)
+		println(buf)
+
+
+	*/
+	after3 := after2.(*app.DominionAppData)
+	after3.Clone()
+
+	fmt.Printf("%+v", before)
+	println("")
+	fmt.Printf("%+v", after3)
+	println("")
+	println("")
+
+	assert.True(t, reflect.DeepEqual(before.Turn, after3.Turn), "Struct 'Turn' not equal after encode+decode")
+	assert.True(t, reflect.DeepEqual(before.Stock, after3.Stock), "Struct 'Stock' not equal after encode+decode")
+	assert.True(t, reflect.DeepEqual(before.CardDecks, after3.CardDecks), "Struct 'CardDecks' not equal after encode+decode")
+	assert.True(t, reflect.DeepEqual(before.Rng, after3.Rng), "Struct 'Rng' not equal after encode+decode")
+	assert.True(t, reflect.DeepEqual(before, *after3), "Struct 'AppData' not equal after encode+decode")
+
+	// ##################################
+	// ------ TEST byte code equality ------
+	// ##################################
+
+	s = strings.Builder{}
+	before.Encode(&s)
+	bytesBefore := s.String()
+
+	after4, _ := app2.DecodeData(strings.NewReader(bytesBefore))
+	s = strings.Builder{}
+	after4.Encode(&s)
+	bytesAfter := s.String()
+
+	assert.Equal(t, bytesBefore, bytesAfter, "bytecode unequal!")
+	print("done")
 }
 
 func Test_Play_Cellar(t *testing.T) {

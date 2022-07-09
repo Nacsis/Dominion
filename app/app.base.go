@@ -34,25 +34,25 @@ func (a *DominionApp) _ValidState(fromData, toData DominionAppData, idx channel.
 
 	switch toData.Turn.PerformedAction {
 	case util.RngCommit:
-		if uint16(len(toData.Rng.ImageA)) != util.HashSize {
-			err = errorInfo.ThrowError(fmt.Sprintf("given Image has not correct size of %d", util.HashSize))
+		if uint16(len(toData.Rng.ImageA)) != util.HashSizeByte {
+			err = errorInfo.ThrowError(fmt.Sprintf("given Image has not correct size of %d", util.HashSizeByte))
 			break
 		}
-		dummyPreImage := util.SliceToPreImageByte(global.RandomBytes(util.PreImageSize))
+		dummyPreImage := util.SliceToPreImageByte(global.RandomBytes(util.PreImageSizeByte))
 		err = fromDataClone.RngCommit(idx, dummyPreImage)
 		fromDataClone.Rng.ImageA = toData.Rng.ImageA
 		break
 	case util.RngTouch:
-		if uint16(len(toData.Rng.PreImageB)) != util.PreImageSize {
-			err = errorInfo.ThrowError(fmt.Sprintf("given preImage has not correct size of %d", util.PreImageSize))
+		if uint16(len(toData.Rng.PreImageB)) != util.PreImageSizeByte {
+			err = errorInfo.ThrowError(fmt.Sprintf("given preImage has not correct size of %d", util.PreImageSizeByte))
 			break
 		}
 		err = fromDataClone.RngTouch(idx)
 		fromDataClone.Rng.PreImageB = toData.Rng.PreImageB
 		break
 	case util.RngRelease:
-		if uint16(len(toData.Rng.PreImageA)) != util.PreImageSize {
-			err = errorInfo.ThrowError(fmt.Sprintf("given preImage has not correct size of %d", util.PreImageSize))
+		if uint16(len(toData.Rng.PreImageA)) != util.PreImageSizeByte {
+			err = errorInfo.ThrowError(fmt.Sprintf("given preImage has not correct size of %d", util.PreImageSizeByte))
 			break
 		}
 		err = fromDataClone.RngRelease(idx, toData.Rng.PreImageA)
@@ -195,7 +195,7 @@ func (a *DominionApp) BuyCard(s *channel.State, actorIdx channel.Index, cardType
 
 // RngCommit set an image for Rng
 // Players who want to draw a card need to start by committing to a preimage
-func (a *DominionApp) RngCommit(s *channel.State, actorIdx channel.Index, preImage [util.PreImageSize]byte) error {
+func (a *DominionApp) RngCommit(s *channel.State, actorIdx channel.Index, preImage [util.PreImageSizeByte]byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "RngCommit", FileName: util.ErrorConstAPP}
 
 	dominionAppData, ok := s.Data.(*DominionAppData)
@@ -229,7 +229,7 @@ func (a *DominionApp) RngTouch(s *channel.State, actorIdx channel.Index) error {
 
 // RngRelease set preimage of set image
 // Players publish their preimage of the image, s.t. a shared random value can be calculated
-func (a *DominionApp) RngRelease(s *channel.State, actorIdx channel.Index, image [util.PreImageSize]byte) error {
+func (a *DominionApp) RngRelease(s *channel.State, actorIdx channel.Index, preImage [util.PreImageSizeByte]byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "RngRelease", FileName: util.ErrorConstAPP}
 
 	dominionAppData, ok := s.Data.(*DominionAppData)
@@ -237,7 +237,7 @@ func (a *DominionApp) RngRelease(s *channel.State, actorIdx channel.Index, image
 		return errorInfo.ThrowError(fmt.Sprintf("AppData is in an invalid data format %T", dominionAppData))
 	}
 
-	err := dominionAppData.RngRelease(actorIdx, image)
+	err := dominionAppData.RngRelease(actorIdx, preImage)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}

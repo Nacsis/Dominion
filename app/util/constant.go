@@ -63,12 +63,12 @@ const (
 	InitialPlayResources  = 1
 	InitialBuyResources   = 1
 	InitialMoneyResources = 0
-	DeckResourcesCount    = 4
+	DeckResourcesCount    = int(SpendableMoney) + 1
 
 	//------------------------ Crypto / Framework ------------------------
 
-	HashSize     uint16 = 256
-	PreImageSize uint16 = 1028
+	HashSizeByte     uint16 = 32
+	PreImageSizeByte uint16 = 128
 
 	//------------------------ Card ------------------------
 

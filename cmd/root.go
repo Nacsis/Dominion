@@ -10,6 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"perun.network/perun-examples/dominion-cli/cmd/demo"
+	"perun.network/perun-examples/dominion-cli/cmd/play"
 )
 
 var cfgFile string
@@ -47,13 +49,19 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.dominion-cli.yaml)")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringVar(&logConfig.Level, "log-level", "warn", "Logrus level")
+	viper.BindPFlag("log.level", rootCmd.PersistentFlags().Lookup("log-level"))
+	rootCmd.PersistentFlags().StringVar(&logConfig.File, "log-file", "", "log file")
+	viper.BindPFlag("log.file", rootCmd.PersistentFlags().Lookup("log-file"))
+
+	rootCmd.AddCommand(demo.GetDemoCmd())
+	rootCmd.AddCommand(play.GetPlayCmd())
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	setConfig()
+
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)

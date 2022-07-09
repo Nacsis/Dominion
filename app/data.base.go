@@ -497,7 +497,7 @@ func (d *DominionAppData) BuyCard(actorIdx channel.Index, cardType util.CardType
 
 // RngCommit set an image for Rng
 // Players who want to draw a card need to start by committing to a preimage
-func (d *DominionAppData) RngCommit(actorIdx channel.Index, image [util.PreImageSize]byte) error {
+func (d *DominionAppData) RngCommit(actorIdx channel.Index, image [util.PreImageSizeByte]byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "RngCommit", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
@@ -547,7 +547,7 @@ func (d *DominionAppData) RngTouch(actorIdx channel.Index) error {
 
 // RngRelease set preimage of set image
 // Players publish their preimage of the image, s.t. a shared random value can be calculated
-func (d *DominionAppData) RngRelease(actorIdx channel.Index, image [util.PreImageSize]byte) error {
+func (d *DominionAppData) RngRelease(actorIdx channel.Index, preImage [util.PreImageSizeByte]byte) error {
 	errorInfo := util.ErrorInfo{FunctionName: "RngRelease", FileName: util.ErrorConstDATA}
 
 	//------ Checks ------
@@ -559,7 +559,7 @@ func (d *DominionAppData) RngRelease(actorIdx channel.Index, image [util.PreImag
 	}
 
 	//------ Perform action ------
-	err := d.Rng.Release(image)
+	err := d.Rng.Release(preImage)
 	if err != nil {
 		return errorInfo.ForwardError(err)
 	}

@@ -17,6 +17,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"time"
 
 	ethchannel "perun.network/go-perun/backend/ethereum/channel"
 	ethwallet "perun.network/go-perun/backend/ethereum/wallet"
@@ -150,7 +151,7 @@ func (c *AppClient) OpenAppChannel(peer wire.Address) *DominionChannel {
 	// Start the on-chain event watcher. It automatically handles disputes.
 	c.startWatching(ch)
 
-	return newDominionChannel(ch)
+	return NewDominionChannel(ch, 30*time.Second)
 }
 
 // startWatching starts the dispute watcher for the specified channel.

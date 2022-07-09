@@ -21,6 +21,8 @@ import "./perun-eth-contracts/contracts/App.sol";
 import "./data.sol";
 import "./Util/constant.sol";
 import "./Util/reader.sol";
+import "./dataValidity.sol";
+import "./decoder.sol";
 
 contract DominionApp is App {
 
@@ -39,36 +41,78 @@ contract DominionApp is App {
         uint256 signerIdx)
     external pure override
     {
-
-        //require(params.participants.length == numParts, "number of participants");
-
-
         ReaderLib.Reader memory fromReader = ReaderLib.Reader(Convert.bytesToByteArray(from.appData));
-        DataLib.DominionAppData memory fromAppData = decodeData(fromReader);
+        DataLib.DominionAppData memory fromAppData = DecoderLib.decodeData(fromReader);
         ReaderLib.Reader memory fromReaderClone = ReaderLib.Reader(Convert.bytesToByteArray(from.appData));
-        DataLib.DominionAppData memory fromAppDataClone = decodeData(fromReaderClone);
+        DataLib.DominionAppData memory fromAppDataClone = DecoderLib.decodeData(fromReaderClone);
         ReaderLib.Reader memory toReader = ReaderLib.Reader(Convert.bytesToByteArray(to.appData));
-        DataLib.DominionAppData memory toAppData = decodeData(toReader);
+        DataLib.DominionAppData memory toAppData = DecoderLib.decodeData(toReader);
 
-        if (toAppData.turn.performedAction == Constant.GeneralTypesOfActions.RngCommit) {
-            //...
+        //Valid Signer
+        require(toAppData.turn.nextActor == signerIdx, "Signer is not nextActor");
+
+
+        //Valid Participants
+        require(params.participants.length == Constant.NumPlayers, "Number of participants");
+
+
+        //Valid Action
+        require(fromAppData.turn.possibleActions[uint256(toAppData.turn.performedAction)]);
+
+        /*
+        // Valid Data Change
+        DataValidityLib.validDataChange(fromAppData, fromAppDataClone, toAppData);
+        */
+
+        /*
+        // Test Final State
+        require((toAppData.turn.performedAction == Constant.GeneralTypesOfActions.GameEnd) == to.isFinal, "Channel set isFinal, without GameEnd Action performed");
+        Array.requireEqualAddressArray(to.outcome.assets, from.outcome.assets);
+        Channel.requireEqualSubAllocArray(to.outcome.locked, from.outcome.locked);
+        uint256[][] memory expectedBalances = from.outcome.balances;
+
+        (bool hasWinner, uint8 winner) = getWinner(toAppData);
+
+        if (hasWinner) {
+            uint8 loser = 1 - winner;
+            expectedBalances = new uint256[][](expectedBalances.length);
+            for (uint i = 0; i < expectedBalances.length; i++) {
+                expectedBalances[i] = new uint256[](Constant.NumPlayers);
+                expectedBalances[i][winner] = from.outcome.balances[i][0] + from.outcome.balances[i][1];
+                expectedBalances[i][loser] = 0;
+            }
+        }
+        requireEqualUint256ArrayArray(to.outcome.balances, expectedBalances);
+        */
+    }
+
+    function requireEqualUint256ArrayArray(
+        uint256[][] memory a,
+        uint256[][] memory b
+    )
+    internal pure
+    {
+        require(a.length == b.length, "uint256[][]: unequal length");
+        for (uint i = 0; i < a.length; i++) {
+            Array.requireEqualUint256Array(a[i], b[i]);
         }
     }
 
-    function decodeData(
-        ReaderLib.Reader memory r)
-    internal pure returns (DataLib.DominionAppData  memory){
-        TurnLib.Turn memory turn = ReaderLib.ReadTurn(r);
-        StockLib.Stock memory stock = ReaderLib.ReadStock(r);
+    function getWinner(
+        DataLib.DominionAppData memory appData)
+    internal pure returns (bool, uint8){
+        bool hasWinner = false;
+        uint8 winner = 0;
 
-        DeckLib.Deck[] memory decks = new DeckLib.Deck[](Constant.NumPlayers);
-        for (uint deckIndex = 0; deckIndex < Constant.NumPlayers; deckIndex++) {
-            ReaderLib.ReadCardDeck(r);
+        if (DeckLib.victoryPoints(appData.CardDecks[0]) != DeckLib.victoryPoints(appData.CardDecks[1])) {
+            hasWinner = true;
+            if (DeckLib.victoryPoints(appData.CardDecks[0]) > DeckLib.victoryPoints(appData.CardDecks[1])) {
+                winner = 0;
+            } else {
+                winner = 1;
+            }
         }
-        RNGLib.RNG memory rng = ReaderLib.ReadRng(r);
 
-        DataLib.DominionAppData memory appData = DataLib.DominionAppData(turn,stock,decks,rng);
-        return appData;
-
+        return (hasWinner, winner);
     }
 }

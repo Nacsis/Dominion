@@ -20,7 +20,7 @@ func (s *Stock) ToByte() []byte {
 		dataBytes = append(dataBytes, trash)
 	}
 
-	return append([]byte{byte(len(dataBytes))}, dataBytes...)
+	return util.AppendLength(dataBytes)
 }
 
 // Of create Stock out of a bytes
@@ -31,7 +31,7 @@ func (s *Stock) Of(dataBytes []byte) {
 		s.CardAmounts[i] = dataBytes[i]
 	}
 	for i := 0; i < len(s.Trash); i++ {
-		s.Trash[i] = dataBytes[i]
+		s.Trash[i] = dataBytes[util.CardTypeCount+i]
 	}
 }
 

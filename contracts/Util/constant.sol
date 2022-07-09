@@ -17,7 +17,8 @@ library Constant {
 
     //------------------------ Crypto / Framework ------------------------
 
-    uint8 constant HashSize = 20;
+    uint8 constant HashSize = 32;
+    uint16 constant PreImageSize = 128;
 
     //------------------------ Card ------------------------
 
@@ -49,7 +50,7 @@ library Constant {
 
     uint8 constant    VictoryCardPlayCost = 0;
 
-    enum CardType {Copper, Silver, Gold, VictorySmall, VictoryMid, VictoryBig}
+    enum CardType {Copper, Silver, Gold, VictorySmall, VictoryMid, VictoryBig, Cellar, Market, Merchant, Mine, Remodel, Smithy, Feast, Chapel, Workshop, Village}
     enum GeneralTypesOfActions {GameInit, RngCommit, RngTouch, RngRelease, DrawCard, PlayCard, BuyCard, EndTurn, GameEnd}
     enum DeckResources {PlayableCards, DrawableCards, PurchasableCards, SpendableMoney}
 

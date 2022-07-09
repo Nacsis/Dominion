@@ -1,5 +1,7 @@
 package app
 
+import "perun.network/perun-examples/dominion-cli/app/util"
+
 type Pile struct {
 	Cards []Card
 }
@@ -10,7 +12,7 @@ func (p *Pile) ToByte() []byte {
 	for _, card := range p.Cards {
 		dataBytes = append(dataBytes, card.ToByte()...)
 	}
-	return append([]byte{byte(len(dataBytes))}, dataBytes...)
+	return util.AppendLength(dataBytes)
 }
 
 // Of create Pile out of a bytes

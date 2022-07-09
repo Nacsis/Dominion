@@ -1,6 +1,8 @@
 package app
 
-import "perun.network/perun-examples/dominion-cli/app/util"
+import (
+	"perun.network/perun-examples/dominion-cli/app/util"
+)
 
 type Turn struct {
 	NextActor              uint8
@@ -27,7 +29,15 @@ func (t *Turn) ToByte() []byte {
 	dataBytes := append([]byte{}, t.NextActor)
 	dataBytes = append(dataBytes, byte(t.PerformedAction))
 	dataBytes = append(dataBytes, util.BoolToByte(t.MandatoryPartFulfilled))
-	dataBytes = append(dataBytes, byte(len(t.PossibleActions)))
+
+	actionCounter := 0
+	for _, v := range t.PossibleActions {
+		if v {
+			actionCounter++
+		}
+	}
+
+	dataBytes = append(dataBytes, byte(actionCounter)) // byte sufficient as length here!
 
 	for k, v := range t.PossibleActions {
 		if v {
@@ -35,7 +45,7 @@ func (t *Turn) ToByte() []byte {
 		}
 	}
 	dataBytes = append(dataBytes, t.Params.ToByte()...)
-	return append([]byte{byte(len(dataBytes))}, dataBytes...)
+	return util.AppendLength(dataBytes)
 }
 
 // Of create Turn out of a bytes
@@ -45,9 +55,11 @@ func (t *Turn) Of(dataBytes []byte) {
 	t.MandatoryPartFulfilled = util.ByteToBool(dataBytes[2])
 
 	t.PossibleActions = [util.GeneralTypesOfActionsCount]bool{}
+	lengthActions := dataBytes[3] // byte exceptionally used as legth here (see above)!
 
-	for _, k := range dataBytes[4 : 4+dataBytes[3]] {
+	for _, k := range dataBytes[4 : 4+lengthActions] {
 		t.PossibleActions[k] = true
 	}
-	t.Params.Of(dataBytes[4+dataBytes[3]:])
+	_, dataBytes = util.PopLength(dataBytes[4+lengthActions:])
+	t.Params.Of(dataBytes)
 }
