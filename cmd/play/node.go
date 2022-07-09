@@ -64,6 +64,9 @@ type node struct {
 	// Needed to deploy contracts.
 	cb echannel.ContractBackend
 
+	// app specific stuff -> card drawing
+	preimage [util.PreImageSizeByte]byte
+
 	// Protects peers
 	mtx   sync.Mutex
 	peers map[string]*peer
@@ -229,6 +232,7 @@ func (n *node) channel(id channel.ID) *dominionClient.DominionChannel {
 }
 
 func (n *node) HandleProposal(prop client.ChannelProposal, res *client.ProposalResponder) {
+
 	// Ensure that we got a ledger channel proposal.
 	req, ok := prop.(*client.LedgerChannelProposal)
 	if !ok {
@@ -291,6 +295,7 @@ func (n *node) HandleProposal(prop client.ChannelProposal, res *client.ProposalR
 			}
 
 			ch.OnUpdate(n.OnUpdate)
+			n.infoGame()
 
 		} else {
 			fmt.Printf("❌ Channel proposal rejected\n")
@@ -322,8 +327,7 @@ func (n *node) Open(args []string) error {
 		Balances: [][]*big.Int{etherToWei(myBalEth, peerBalEth)},
 	}
 
-	// TODO check first actor is opener?
-	firstActorIdx := channel.Index(0)
+	firstActorIdx := channel.Index(0) // Opener always has chanel.Idx()=0
 	withApp := client.WithApp(n.app, n.app.Init(firstActorIdx))
 
 	prop, err := client.NewLedgerChannelProposal(
@@ -351,6 +355,7 @@ func (n *node) Open(args []string) error {
 	}
 
 	ch.OnUpdate(n.OnUpdate)
+	n.infoGame()
 	return nil
 }
 
@@ -376,6 +381,8 @@ func (n *node) Info(args []string) error {
 	n.mtx.Lock()
 	defer n.mtx.Unlock()
 	n.log.Traceln("Info...")
+
+	// TODO: select sub sections via args
 
 	fmt.Print("Channel Info:\n")
 	if err := n.infoChannel(); err != nil {
@@ -406,8 +413,9 @@ func (n *node) infoGame() error {
 		fmt.Printf("  Possible Actions: %v\n", pa)
 		fmt.Printf("  Ressources: %v\n", resources)
 
-		fmt.Println()
-		// fmt.Printf("AppData: \n%+v\n", data)
+		// TODO separate?
+		data.CardDecks[peer.ch.Idx()].Print()
+		return nil
 	}
 	return nil
 }

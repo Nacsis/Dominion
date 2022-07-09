@@ -1,6 +1,8 @@
 package app
 
 import (
+	"strings"
+
 	"perun.network/perun-examples/dominion-cli/app/util"
 )
 
@@ -134,4 +136,32 @@ func (c *Card) Of(dataBytes []byte) {
 }
 func (c *Card) IsMoneyCard() bool {
 	return c.CardType == util.Copper || c.CardType == util.Silver || c.CardType == util.Gold
+}
+
+var (
+	cardsMap = map[string]util.CardType{
+		"copper":       util.Copper,
+		"silver":       util.Silver,
+		"gold":         util.Gold,
+		"victorySmall": util.VictorySmall,
+		"victoryMid":   util.VictoryMid,
+		"victoryBig":   util.VictoryBig,
+		"cellar":       util.Cellar,
+		"market":       util.Market,
+		"oasis":        util.Oasis,
+		"mine":         util.Mine,
+		"remodel":      util.Remodel,
+		"smithy":       util.Smithy,
+		"chapel":       util.Chapel,
+		"workshop":     util.Workshop,
+		"feast":        util.Feast,
+		"village":      util.Village,
+	}
+)
+
+func NewCard(name string) (card Card, ok bool) {
+	ct, ok := cardsMap[strings.ToLower(name)]
+	c := Card{}
+	c.Of([]byte{byte(ct)})
+	return c, ok
 }

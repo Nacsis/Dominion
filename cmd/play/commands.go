@@ -55,11 +55,34 @@ func init() {
 			"Print the current configuration and known peers.",
 			func([]string) error { return backend.PrintConfig() },
 		}, {
-			// TODO include print game state
 			"info",
 			nil,
-			"Print information about funds, peers, and channels.",
+			"Print information about funds, peers, channels and game state.",
 			func(args []string) error { return backend.Info(args) },
+		}, {
+			"start",
+			nil,
+			"Start the dominion cli game or see if an other see who needs to start. An open channel is required.",
+			func(args []string) error { return backend.Start() },
+		}, {
+			"play",
+			[]argument{{"Card Name or Position", valUintOrCard}, {"Tarteg indices", valUintList}, {"Target card", valCard}},
+			"Play a card. Usage: \n  " +
+				"play [card name]/[card position] [target indices] [target card]\nParams:\n" +
+				"  Card Name or Position:\tThe first card of matching type or position will be chosen. Card name is not case sensitive.\n" +
+				"  Target indices:\t\tTarget card indices in hand. format: comma-seperated, e.g. \"1,5,2\"\n" +
+				"  Target card:\t\tTarget card type",
+			func(args []string) error { return backend.PlayCard(args) },
+		}, {
+			"buy",
+			[]argument{{"Card Name", valCard}},
+			"Buy a card. usage: buy [card name]\n Card name is not case sensitive.",
+			func(args []string) error { return backend.BuyCard(args) },
+		}, {
+			"end",
+			nil,
+			"End your turn. If the game is final, EndGame is automatically called instead and settlement and payout are triggered.",
+			func(args []string) error { return backend.EndTurnOrGame() },
 		}, {
 			"help",
 			nil,

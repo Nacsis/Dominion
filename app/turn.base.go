@@ -9,7 +9,7 @@ func (t *Turn) IsActionAllowed(action util.GeneralTypesOfActions) bool {
 
 // SetAllowed update list of allowed actions
 func (t *Turn) SetAllowed(possibleActions ...util.GeneralTypesOfActions) {
-	t.PossibleActions = [util.GameEnd]bool{}
+	t.PossibleActions = [util.GeneralTypesOfActionsCount]bool{}
 	for _, v := range possibleActions {
 		t.PossibleActions[v] = true
 	}

@@ -27,7 +27,7 @@ func ReadUInt32(r io.Reader) (uint32, error) {
 func ReadObject(r io.Reader, o Readable) error {
 	length, err := ReadUInt16(r)
 	buf := make([]byte, length)
-	io.ReadFull(r, buf) // TODO ERROR handle
+	io.ReadFull(r, buf)
 	o.Of(buf)
 	return err
 }

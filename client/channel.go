@@ -48,7 +48,9 @@ func (ch *DominionChannel) GetTimeout() time.Duration {
 func (g *DominionChannel) SettleAndClose() {
 	// Channel should be finalized through last ("winning") move.
 	// No need to set `isFinal` here.
-	err := g.Settle(context.TODO(), false)
+	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
+	defer cancel()
+	err := g.Settle(ctx, false)
 	if err != nil {
 		panic(err)
 	}
@@ -94,7 +96,9 @@ func (ch *DominionChannel) GetBalances() (our, other *big.Int) {
 func (g *DominionChannel) RngCommit(preImage [util.PreImageSizeByte]byte) {
 	errorInfo := util.ErrorInfo{FunctionName: "RngCommit", FileName: util.ErrorConstChannel}
 
-	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
+	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
+	defer cancel()
+	err := g.UpdateBy(ctx, func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
@@ -111,7 +115,11 @@ func (g *DominionChannel) RngCommit(preImage [util.PreImageSizeByte]byte) {
 func (g *DominionChannel) RngTouch() {
 	errorInfo := util.ErrorInfo{FunctionName: "RngTouch", FileName: util.ErrorConstChannel}
 
-	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
+	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
+	defer cancel()
+
+	g.log.Debug("proposing RngTouch...")
+	err := g.UpdateBy(ctx, func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
@@ -128,7 +136,11 @@ func (g *DominionChannel) RngTouch() {
 func (g *DominionChannel) RngRelease(preImage [util.PreImageSizeByte]byte) {
 	errorInfo := util.ErrorInfo{FunctionName: "RngRelease", FileName: util.ErrorConstChannel}
 
-	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
+	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
+	defer cancel()
+
+	g.log.Debug("proposing RngRelease...")
+	err := g.UpdateBy(ctx, func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
@@ -147,7 +159,11 @@ func (g *DominionChannel) RngRelease(preImage [util.PreImageSizeByte]byte) {
 func (g *DominionChannel) DrawOneCard() {
 	errorInfo := util.ErrorInfo{FunctionName: "DrawCard", FileName: util.ErrorConstChannel}
 
-	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
+	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
+	defer cancel()
+
+	g.log.Debug("proposing DrawCard...")
+	err := g.UpdateBy(ctx, func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
@@ -164,7 +180,9 @@ func (g *DominionChannel) DrawOneCard() {
 func (g *DominionChannel) PlayCard(index uint8, followUpIndices []uint8, followUpCardType util.CardType) {
 	errorInfo := util.ErrorInfo{FunctionName: "PlayCard", FileName: util.ErrorConstChannel}
 
-	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
+	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
+	defer cancel()
+	err := g.UpdateBy(ctx, func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
@@ -181,7 +199,9 @@ func (g *DominionChannel) PlayCard(index uint8, followUpIndices []uint8, followU
 func (g *DominionChannel) BuyCard(cardType util.CardType) {
 	errorInfo := util.ErrorInfo{FunctionName: "BuyCard", FileName: util.ErrorConstChannel}
 
-	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
+	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
+	defer cancel()
+	err := g.UpdateBy(ctx, func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
@@ -200,7 +220,9 @@ func (g *DominionChannel) BuyCard(cardType util.CardType) {
 func (g *DominionChannel) EndTurn() {
 	errorInfo := util.ErrorInfo{FunctionName: "EndTurn", FileName: util.ErrorConstChannel}
 
-	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
+	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
+	defer cancel()
+	err := g.UpdateBy(ctx, func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
@@ -218,7 +240,9 @@ func (g *DominionChannel) EndTurn() {
 // EndGame
 func (g *DominionChannel) EndGame() {
 	errorInfo := util.ErrorInfo{FunctionName: "EndTurn", FileName: util.ErrorConstChannel}
-	err := g.UpdateBy(context.TODO(), func(state *channel.State) error {
+	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
+	defer cancel()
+	err := g.UpdateBy(ctx, func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))

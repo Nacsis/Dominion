@@ -15,7 +15,7 @@ func (s *Stock) TakeOffOneInitialDeck() (Pile, error) {
 
 	for i := 0; i < util.InitialMoneyCards; i++ {
 		card := Card{}
-		card.Of([]byte{byte(util.Copper)}) // TODO Handle error
+		card.Of([]byte{byte(util.Copper)})
 		err := pile.AddCardToPile(card)
 		if err != nil {
 			return Pile{}, errorInfo.ForwardError(err)
@@ -24,7 +24,7 @@ func (s *Stock) TakeOffOneInitialDeck() (Pile, error) {
 
 	for i := 0; i < util.InitialVictoryCards; i++ {
 		card := Card{}
-		card.Of([]byte{byte(util.VictorySmall)}) // TODO Handle error
+		card.Of([]byte{byte(util.VictorySmall)})
 		err := pile.AddCardToPile(card)
 		if err != nil {
 			return Pile{}, errorInfo.ForwardError(err)
@@ -52,4 +52,20 @@ func (s *Stock) TakeOffCard(cardType util.CardType) (Card, error) {
 func (s *Stock) TrashCard(cardType util.CardType) error {
 	s.Trash[cardType]++
 	return nil
+}
+
+// EmptyCardSets count amount of empty cardTypes
+func (s *Stock) EmptyCardSets() uint8 {
+	var count = uint8(0)
+	for _, amount := range s.CardAmounts {
+		if amount == 0 {
+			count++
+		}
+	}
+	return count
+}
+
+// IsBigVictoryCardEmpty check if VictoryBig stock is empty
+func (s *Stock) IsBigVictoryCardEmpty() bool {
+	return s.CardAmounts[util.VictoryBig] <= 0
 }

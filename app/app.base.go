@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 
 	"perun.network/go-perun/channel"
 	"perun.network/perun-examples/dominion-cli/app/util"
@@ -97,10 +98,109 @@ func (a *DominionApp) _ValidState(fromData, toData DominionAppData, idx channel.
 		return errorInfo.ForwardError(err)
 	}
 
-	if !reflect.DeepEqual(fromDataClone, toData) {
+	// fmt.Printf("fromDataClone: %+v\n", fromDataClone)
+	// fmt.Printf("toData:        %+v\n", toData)
+	// toDataClone := toData.Clone2DominionAppData()
+
+	if !reflect.DeepEqual(fromDataClone.Turn, toData.Turn) {
+		fmt.Println("Struct 'Turn' could not be replicated for action")
+		fmt.Printf("Turn Prop: %+v\n", toData.Turn)
+		fmt.Printf("Turn Repl: %+v\n", fromDataClone.Turn)
+		if !reflect.DeepEqual(fromDataClone.Turn.MandatoryPartFulfilled, toData.Turn.MandatoryPartFulfilled) {
+			fmt.Println("Struct 'Turn.MandatoryPartFulfilled' could not be replicated for action")
+			fmt.Printf("Turn.MandatoryPartFulfilled Prop: %+v\n", toData.Turn.MandatoryPartFulfilled)
+			fmt.Printf("Turn.MandatoryPartFulfilled Repl: %+v\n", fromDataClone.Turn.MandatoryPartFulfilled)
+		}
+		if !reflect.DeepEqual(fromDataClone.Turn.NextActor, toData.Turn.NextActor) {
+			fmt.Println("Struct 'Turn.NextActor' could not be replicated for action")
+			fmt.Printf("Turn.NextActor Prop: %+v\n", toData.Turn.NextActor)
+			fmt.Printf("Turn.NextActor Repl: %+v\n", fromDataClone.Turn.NextActor)
+		}
+		if !reflect.DeepEqual(fromDataClone.Turn.Params, toData.Turn.Params) {
+			fmt.Println("Struct 'Turn.Params' could not be replicated for action")
+			fmt.Printf("Turn.Params Prop: %+v\n", toData.Turn.Params)
+			fmt.Printf("Turn.Params Repl: %+v\n", fromDataClone.Turn.Params)
+		}
+		if !reflect.DeepEqual(fromDataClone.Turn.PerformedAction, toData.Turn.PerformedAction) {
+			fmt.Println("Struct 'Turn.PerformedAction' could not be replicated for action")
+			fmt.Printf("Turn.PerformedAction Prop: %+v\n", toData.Turn.PerformedAction)
+			fmt.Printf("Turn.PerformedAction Repl: %+v\n", fromDataClone.Turn.PerformedAction)
+		}
+		if !reflect.DeepEqual(fromDataClone.Turn.PossibleActions, toData.Turn.PossibleActions) {
+			fmt.Println("Struct 'Turn.PossibleActions' could not be replicated for action")
+			fmt.Printf("Turn.PossibleActions Prop: %+v\n", toData.Turn.PossibleActions)
+			fmt.Printf("Turn.PossibleActions Repl: %+v\n", fromDataClone.Turn.PossibleActions)
+		}
+		if !reflect.DeepEqual(fromDataClone.Turn.Params.MainTarget, toData.Turn.Params.MainTarget) {
+			fmt.Println("Struct 'Turn.Params.MainTarget' could not be replicated for action")
+			fmt.Printf("Turn.Params.MainTarget Prop: %+v\n", toData.Turn.Params.MainTarget)
+			fmt.Printf("Turn.Params.MainTarget Repl: %+v\n", fromDataClone.Turn.Params.MainTarget)
+		}
+		if !reflect.DeepEqual(fromDataClone.Turn.Params.SecondLvlIndices, toData.Turn.Params.SecondLvlIndices) {
+			fmt.Println("Struct 'Turn.Params.SecondLvlIndices' could not be replicated for action")
+			fmt.Printf("Turn.Params.SecondLvlIndices Prop: %+v\n", toData.Turn.Params.SecondLvlIndices)
+			fmt.Printf("Turn.Params.SecondLvlIndices Repl: %+v\n", fromDataClone.Turn.Params.SecondLvlIndices)
+		}
+		if !(fromDataClone.Turn.Params.SecondLvlIndices == nil) {
+			fmt.Println("fromDataClone 'Turn.Params.SecondLvlIndices' nil")
+		}
+		if !(toData.Turn.Params.SecondLvlIndices == nil) {
+			fmt.Println("toData 'Turn.Params.SecondLvlIndices' nil")
+		}
+		if !reflect.DeepEqual(fromDataClone.Turn.Params.SecondLvlTarget, toData.Turn.Params.SecondLvlTarget) {
+			fmt.Println("Struct 'Turn.Params.SecondLvlTarget' could not be replicated for action")
+			fmt.Printf("Turn.Params.SecondLvlTarget Prop: %+v\n", toData.Turn.Params.SecondLvlTarget)
+			fmt.Printf("Turn.Params.SecondLvlTarget Repl: %+v\n", fromDataClone.Turn.Params.SecondLvlTarget)
+		}
+	}
+	if !reflect.DeepEqual(fromDataClone.Stock, toData.Stock) {
+		fmt.Println("Struct 'Stock' could not be replicated for action")
+	}
+	if !reflect.DeepEqual(fromDataClone.CardDecks, toData.CardDecks) {
+		fmt.Println("Struct 'CardDecks' could not be replicated for action")
+	}
+	if !reflect.DeepEqual(fromDataClone.Rng, toData.Rng) {
+		fmt.Println("Struct 'Rng' could not be replicated for action")
+	}
+
+	s := strings.Builder{}
+	fromDataClone.Encode(&s)
+	bytesRepl := s.String()
+	s = strings.Builder{}
+	toData.Encode(&s)
+	bytesProp := s.String()
+
+	if bytesRepl != bytesProp {
+		fmt.Printf("bytecode unequal: \n1) %s\n2) %s\n", bytesProp, bytesRepl)
+	}
+
+	// if !reflect.DeepEqual(fromDataClone, toData) {
+	// 	return errorInfo.ThrowError("State transition could not be replicated for action")
+	// }
+
+	jsonRepl, _ := json.Marshal(fromDataClone)
+	jsonProp, _ := json.Marshal(toData)
+
+	if !DeepEqual(jsonProp, jsonRepl) {
 		return errorInfo.ThrowError("State transition could not be replicated for action")
 	}
+
 	return nil
+}
+func DeepEqual(v1, v2 interface{}) bool {
+	if reflect.DeepEqual(v1, v2) {
+		return true
+	}
+	var x1 interface{}
+	bytesA, _ := json.Marshal(v1)
+	_ = json.Unmarshal(bytesA, &x1)
+	var x2 interface{}
+	bytesB, _ := json.Marshal(v2)
+	_ = json.Unmarshal(bytesB, &x2)
+	if reflect.DeepEqual(x1, x2) {
+		return true
+	}
+	return false
 }
 
 // EndTurn ends current Turn by switching actors
@@ -135,13 +235,9 @@ func (a *DominionApp) EndGame(s *channel.State, actorIdx channel.Index) error {
 	}
 
 	s.IsFinal = true
-	s.Balances = ComputeFinalBalances(s.Balances) // TODO a real balance need to be calculated when final state could be reached
+	s.Balances = dominionAppData.ComputeFinalBalances(s.Balances)
 
 	return nil
-}
-
-func ComputeFinalBalances(b channel.Balances) channel.Balances {
-	return b.Clone()
 }
 
 //------------------------ Decks ------------------------
