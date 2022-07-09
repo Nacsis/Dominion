@@ -494,7 +494,9 @@ func (d *DominionAppData) BuyCard(actorIdx channel.Index, cardType util.CardType
 	}
 
 	//------ Update Turn ------
-	d.TurnAfter(util.BuyCard, Params{MainTarget: cardType})
+	params := EmptyParams()
+	params.MainTarget = cardType
+	d.TurnAfter(util.BuyCard, *params)
 
 	return nil
 }
