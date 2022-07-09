@@ -323,8 +323,7 @@ func (n *node) Open(args []string) error {
 		Balances: [][]*big.Int{etherToWei(myBalEth, peerBalEth)},
 	}
 
-	// TODO check first actor is opener?
-	firstActorIdx := channel.Index(0)
+	firstActorIdx := channel.Index(0) // Opener always has chanel.Idx()=0
 	withApp := client.WithApp(n.app, n.app.Init(firstActorIdx))
 
 	prop, err := client.NewLedgerChannelProposal(
@@ -407,6 +406,14 @@ func (n *node) infoGame() error {
 		fmt.Printf("  Initial Cards drawn: %v\n", turn.MandatoryPartFulfilled)
 		fmt.Printf("  Possible Actions: %v\n", pa)
 		fmt.Printf("  Ressources: %v\n", resources)
+
+		// fmt.Println()
+		// fmt.Printf("ID:\t%v\n", peer.ch.ID())
+		// fmt.Printf("Idx:\t%v\n", peer.ch.Idx())
+		// fmt.Printf("Params:\t%+v\n", peer.ch.Params())
+		// fmt.Printf("Params.Parts:\t%v\n", peer.ch.Params().Parts)
+		// fmt.Printf("Parts:\t%v\n", peer.ch.Peers())  // just use this...
+		// fmt.Printf("peer:\t%+v\n", peer)
 
 		// fmt.Println()
 		// fmt.Printf("AppData: \n%+v\n", data)

@@ -27,7 +27,7 @@ func (e GeneralTypesOfActions) String() string {
 	}
 }
 
-func PrettyPossibleActions(pa [GameEnd]bool) []string {
+func PrettyPossibleActions(pa [GameEnd + 1]bool) []string {
 	pas := make([]string, 0)
 	for i, v := range pa {
 		if v {

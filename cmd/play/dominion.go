@@ -33,10 +33,10 @@ func playerAlias(addr wire.Address) string {
 
 func (n *node) playerAlias(idx channel.Index) string {
 	for _, peer := range n.peers {
-		perunID := peer.ch.Params().Parts[idx]
+		perunID := peer.ch.Peers()[idx]
 		return playerAlias(perunID)
 	}
-	n.log.Panic("player not found")
+	n.log.Debug("player not found")
 	return ""
 }
 
