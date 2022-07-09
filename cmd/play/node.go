@@ -64,6 +64,9 @@ type node struct {
 	// Needed to deploy contracts.
 	cb echannel.ContractBackend
 
+	// app specific stuff -> card drawing
+	preimage [util.PreImageSizeByte]byte
+
 	// Protects peers
 	mtx   sync.Mutex
 	peers map[string]*peer

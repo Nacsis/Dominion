@@ -2,6 +2,7 @@ package app
 
 import (
 	"math/big"
+
 	"perun.network/go-perun/channel"
 	"perun.network/perun-examples/dominion-cli/app/util"
 )
@@ -34,7 +35,7 @@ func (d *DominionAppData) EndTurn(actorIdx channel.Index) error {
 
 	//------ Update Turn ------
 
-	d.TurnAfter(util.EndTurn, Params{})
+	d.TurnAfter(util.EndTurn, *EmptyParams())
 
 	return nil
 }
@@ -181,7 +182,7 @@ func (d *DominionAppData) EndGame(actorIdx channel.Index) error {
 		return errorInfo.ThrowError("GameEnd is not an allowed action")
 	}
 
-	d.TurnAfter(util.GameEnd, Params{})
+	d.TurnAfter(util.GameEnd, *EmptyParams())
 	return nil
 }
 
@@ -214,7 +215,7 @@ func (d *DominionAppData) DrawCard(actorIdx channel.Index) error {
 	d.Rng = RNG{}
 
 	//------ Update Turn ------
-	d.TurnAfter(util.DrawCard, Params{})
+	d.TurnAfter(util.DrawCard, *EmptyParams())
 
 	return nil
 }
@@ -515,7 +516,7 @@ func (d *DominionAppData) RngCommit(actorIdx channel.Index, image [util.PreImage
 	}
 
 	//------ Update Turn ------
-	d.TurnAfter(util.RngCommit, Params{})
+	d.TurnAfter(util.RngCommit, *EmptyParams())
 
 	return nil
 }
@@ -540,7 +541,7 @@ func (d *DominionAppData) RngTouch(actorIdx channel.Index) error {
 	}
 
 	//------ Update Turn ------
-	d.TurnAfter(util.RngTouch, Params{})
+	d.TurnAfter(util.RngTouch, *EmptyParams())
 
 	return nil
 }
@@ -565,7 +566,7 @@ func (d *DominionAppData) RngRelease(actorIdx channel.Index, preImage [util.PreI
 	}
 
 	//------ Update Turn ------
-	d.TurnAfter(util.RngRelease, Params{})
+	d.TurnAfter(util.RngRelease, *EmptyParams())
 
 	return nil
 }

@@ -40,7 +40,7 @@ func Test_Encode_Decode(t *testing.T) {
 			NextActor:              1,
 			PerformedAction:        2,
 			MandatoryPartFulfilled: false,
-			PossibleActions:        [8]bool{true, false, true, false, true, false, true, false},
+			PossibleActions:        [9]bool{true, false, true, false, true, false, true, false},
 			Params: app.Params{
 				MainTarget:       3,
 				SecondLvlTarget:  4,

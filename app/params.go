@@ -1,6 +1,8 @@
 package app
 
-import "perun.network/perun-examples/dominion-cli/app/util"
+import (
+	"perun.network/perun-examples/dominion-cli/app/util"
+)
 
 type Params struct {
 	MainTarget       util.CardType
@@ -10,6 +12,14 @@ type Params struct {
 
 // Init sets up initial Params state
 func (p *Params) Init() {
+	p.SecondLvlIndices = make([]uint8, 0)
+}
+
+// get a new empty params object
+func EmptyParams() *Params {
+	emptyParams := Params{}
+	emptyParams.Init()
+	return &emptyParams
 }
 
 // Init sets up initial Params state
@@ -35,7 +45,4 @@ func (p *Params) Of(dataBytes []byte) {
 	p.SecondLvlTarget = util.CardType(dataBytes[1])
 	p.SecondLvlIndices = make([]uint8, len(dataBytes)-2)
 	copy(p.SecondLvlIndices, dataBytes[2:])
-	// for i, b := range dataBytes[2:] {
-	// 	p.SecondLvlIndices[i] = b
-	// }
 }

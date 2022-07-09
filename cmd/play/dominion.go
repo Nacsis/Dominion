@@ -51,7 +51,7 @@ func (n *node) ownTurn(data *app.DominionAppData) bool {
 	return false
 }
 
-func (n *node) drawCard() {
+func (n *node) drawCardStart() {
 
 	fmt.Println("drawing card...")
 
@@ -59,6 +59,8 @@ func (n *node) drawCard() {
 	for _, peer := range n.peers {
 		peer.ch.RngCommit(preimage)
 	}
+
+	n.preimage = preimage
 }
 
 // Start the dominion cli game or see if an other see who needs to start. An open channel is required.
@@ -72,7 +74,7 @@ func (n *node) Start() error {
 	// initHandDrawn := toData.Turn.MandatoryPartFulfilled
 	if ownTurn {
 		fmt.Print("Starting game :)")
-		n.drawCard()
+		n.drawCardStart()
 	} else {
 		firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))
 		fmt.Printf("%s needs to start.", firstActor)
