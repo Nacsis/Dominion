@@ -149,7 +149,22 @@ func (n *node) BuyCard(args []string) error {
 		if ownTurn {
 
 			c, _ := app.NewCard(args[0])
-			peer.ch.BuyCard(c.CardType)
+			if err := peer.ch.BuyCard(c.CardType, false); err != nil {
+
+				// handle Off-Chain error
+				msg := fmt.Sprint("BuyCard action failed or peer did not respond. Do you want to ForceUpdate on the blockchain? (y/n)")
+				Prompt(msg, func(userInput string) {
+
+					if userInput == "y" {
+						if err := peer.ch.BuyCard(c.CardType, true); err != nil {
+							fmt.Printf("❌ ForceUpdate failed for action 'buy' with args %v\n", args)
+						} else {
+							fmt.Printf("✅ ForceUpdate success!\n")
+						}
+					}
+
+				})
+			}
 
 		} else {
 			firstActor := n.playerAlias(channel.Index(data.Turn.NextActor))

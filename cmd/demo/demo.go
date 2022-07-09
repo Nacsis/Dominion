@@ -64,7 +64,7 @@ var demoCmd = &cobra.Command{
 		log.Println("Alice drawn init hand")
 		appAlice.PlayCard(0, nil, util.Copper)
 		log.Println("Alice played a card")
-		appAlice.BuyCard(util.Copper)
+		appAlice.BuyCard(util.Copper, false)
 		log.Println("Alice Bought a card ", util.Copper)
 
 		appAlice.EndTurn()

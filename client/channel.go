@@ -196,22 +196,34 @@ func (g *DominionChannel) PlayCard(index uint8, followUpIndices []uint8, followU
 }
 
 // BuyCard Buyables one card for given CardType.
-func (g *DominionChannel) BuyCard(cardType util.CardType) {
+func (g *DominionChannel) BuyCard(cardType util.CardType, force bool) error {
 	errorInfo := util.ErrorInfo{FunctionName: "BuyCard", FileName: util.ErrorConstChannel}
 
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
-	err := g.UpdateBy(ctx, func(state *channel.State) error {
+	updateCallback := func(state *channel.State) error {
 		dominionApp, ok := state.App.(*app.DominionApp)
 		if !ok {
 			return errorInfo.ThrowError(fmt.Sprintf("App is in an invalid data format %T", dominionApp))
 		}
 
 		return dominionApp.BuyCard(state, g.Idx(), cardType)
-	})
-	if err != nil {
-		panic(err) // We panic on error to keep the code simple.
 	}
+
+	if !force {
+		return g.UpdateBy(ctx, updateCallback)
+	} else {
+		if err := g.ForceUpdate(ctx, func(state *channel.State) {
+			updateCallback(state)
+			// if err := updateCallback(state); err != nil {
+			// 	panic(err) // We panic on error because this should have already failed in off-chain attempt.
+			// }
+		}); err != nil {
+			g.log.Errorln("Channel ForceUpdate failed... :(")
+			return err
+		}
+	}
+	return nil
 }
 
 //------------------------ General turn mechanics ------------------------
