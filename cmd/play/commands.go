@@ -55,11 +55,15 @@ func init() {
 			"Print the current configuration and known peers.",
 			func([]string) error { return backend.PrintConfig() },
 		}, {
-			// TODO include print game state
 			"info",
 			nil,
-			"Print information about funds, peers, and channels.",
+			"Print information about funds, peers, channels and game state.",
 			func(args []string) error { return backend.Info(args) },
+		}, {
+			"start",
+			nil,
+			"Start the dominion cli game or see if an other see who needs to start. An open channel is required.",
+			func(args []string) error { return backend.Start() },
 		}, {
 			"help",
 			nil,

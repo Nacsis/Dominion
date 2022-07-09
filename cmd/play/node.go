@@ -291,6 +291,7 @@ func (n *node) HandleProposal(prop client.ChannelProposal, res *client.ProposalR
 			}
 
 			ch.OnUpdate(n.OnUpdate)
+			n.infoGame()
 
 		} else {
 			fmt.Printf("❌ Channel proposal rejected\n")
@@ -351,6 +352,7 @@ func (n *node) Open(args []string) error {
 	}
 
 	ch.OnUpdate(n.OnUpdate)
+	n.infoGame()
 	return nil
 }
 
@@ -406,8 +408,9 @@ func (n *node) infoGame() error {
 		fmt.Printf("  Possible Actions: %v\n", pa)
 		fmt.Printf("  Ressources: %v\n", resources)
 
-		fmt.Println()
+		// fmt.Println()
 		// fmt.Printf("AppData: \n%+v\n", data)
+		return nil
 	}
 	return nil
 }
