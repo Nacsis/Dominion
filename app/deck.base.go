@@ -193,3 +193,17 @@ func (d *Deck) IsDrawActionPossible() bool {
 func (d *Deck) IsBuyActionPossible() bool {
 	return d.Resources[util.BuyableCards] > 0 // TODO Add check when shared supply is available
 }
+
+// VictoryPointInDeck return sum of VictoryPoints in deck
+func (d *Deck) VictoryPointInDeck() uint8 {
+	var cards []Card
+	cards = append(cards, d.HandPile.Cards...)
+	cards = append(cards, d.MainPile.Cards...)
+	cards = append(cards, d.DiscardedPile.Cards...)
+	cards = append(cards, d.PlayedPile.Cards...)
+	victoryPoints := uint8(0)
+	for _, card := range cards {
+		victoryPoints += card.VictoryPoints
+	}
+	return victoryPoints
+}

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"math/big"
 	"perun.network/go-perun/channel"
 	"perun.network/perun-examples/dominion-cli/app/util"
 )
@@ -38,8 +39,47 @@ func (d *DominionAppData) EndTurn(actorIdx channel.Index) error {
 	return nil
 }
 
+//ComputeFinalBalances calculate final balances for game end
+func (d *DominionAppData) ComputeFinalBalances(b channel.Balances) channel.Balances {
+
+	winner, err := d.GetWinnerId()
+	if err != nil {
+		return b.Clone()
+	}
+	WinnerBal := b.Sum()
+	if winner == 1 {
+		return channel.Balances{[]channel.Bal{big.NewInt(0)}, WinnerBal}
+	} else {
+		return channel.Balances{WinnerBal, []channel.Bal{big.NewInt(0)}}
+	}
+}
+
+//GetWinnerId calculate winner id
+func (d *DominionAppData) GetWinnerId() (int, error) {
+	errorInfo := util.ErrorInfo{FunctionName: "GetWinnerId", FileName: util.ErrorConstDATA}
+
+	cardsOne := d.CardDecks[0].VictoryPointInDeck()
+	cardsTwo := d.CardDecks[1].VictoryPointInDeck()
+
+	if cardsOne == cardsTwo {
+		return -1, errorInfo.ThrowError("Player has same amount of VictoryPoints")
+	} else if cardsOne > cardsTwo {
+		return 0, nil
+	} else {
+		return 1, nil
+	}
+}
+
 // TurnAfter generate Turn state after performed action
 func (d *DominionAppData) TurnAfter(at util.GeneralTypesOfActions, params Params) {
+
+	if d.isFinalGameStateReached() {
+		d.Turn.Params = params
+		d.Turn.PerformedAction = at
+		d.Turn.SetAllowed(util.GameEnd)
+		d.Turn.SetNextActor()
+	}
+
 	switch at {
 	case util.RngCommit:
 		d.Turn.Params = params
@@ -106,6 +146,11 @@ func (d *DominionAppData) TurnAfter(at util.GeneralTypesOfActions, params Params
 	}
 }
 
+// isFinalGameStateReached helper function to avoid duplicated code
+func (d *DominionAppData) isFinalGameStateReached() bool {
+	return d.Stock.EmptyCardSets() >= 3 || d.Stock.IsBigVictoryCardEmpty()
+}
+
 // _GetAllowedDeckActions helper function to avoid duplicated code
 func (d *DominionAppData) _GetAllowedDeckActions() []util.GeneralTypesOfActions {
 
@@ -125,7 +170,17 @@ func (d *DominionAppData) _GetAllowedDeckActions() []util.GeneralTypesOfActions 
 }
 
 // EndGame ends game
-func (d *DominionAppData) EndGame(idx channel.Index) error {
+func (d *DominionAppData) EndGame(actorIdx channel.Index) error {
+	errorInfo := util.ErrorInfo{FunctionName: "EndGame", FileName: util.ErrorConstDATA}
+
+	//------ Checks ------
+	if d.Turn.NextActor != uint8(actorIdx) {
+		return errorInfo.ThrowError("Wrong Actor")
+	}
+	if !d.Turn.IsActionAllowed(util.GameEnd) {
+		return errorInfo.ThrowError("GameEnd is not an allowed action")
+	}
+
 	d.TurnAfter(util.GameEnd, Params{})
 	return nil
 }
