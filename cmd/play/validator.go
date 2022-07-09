@@ -106,14 +106,14 @@ func valCard(arg string) error {
 	if ok {
 		return nil
 	}
-	return errors.Errorf("Unknown card, valid cards (not case sensitive): TODO")
+	return errors.Errorf("Unknown card, valid cards (not case sensitive): %v", app.ValidCardTypes())
 }
 
 func valUintOrCard(arg string) error {
 
 	if err := valUInt(arg); err != nil {
 		if err := valCard(arg); err != nil {
-			return errors.Errorf("Unknown card or index, choose a position of your hand or a valid card (not case sensitive): TODO")
+			return errors.Errorf("Unknown card or index, choose a position of your hand or a valid card (not case sensitive): %v", app.ValidCardTypes())
 		}
 	}
 

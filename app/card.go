@@ -140,6 +140,7 @@ func (c *Card) IsMoneyCard() bool {
 
 var (
 	cardsMap = map[string]util.CardType{
+		"none":         util.NONE,
 		"copper":       util.Copper,
 		"silver":       util.Silver,
 		"gold":         util.Gold,
@@ -164,4 +165,12 @@ func NewCard(name string) (card Card, ok bool) {
 	c := Card{}
 	c.Of([]byte{byte(ct)})
 	return c, ok
+}
+
+func ValidCardTypes() []string {
+	keys := make([]string, 0, len(cardsMap))
+	for k := range cardsMap {
+		keys = append(keys, k)
+	}
+	return keys
 }
