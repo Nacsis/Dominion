@@ -47,7 +47,7 @@ const (
 const (
 
 	//------------------------ Game Actions ------------------------
-	GeneralTypesOfActionsCount = 9
+	GeneralTypesOfActionsCount = int(GameEnd) + 1
 
 	//------------------------ Game Properties ------------------------
 

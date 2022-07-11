@@ -32,18 +32,17 @@ func (n *node) OnUpdate(from, to *channel.State) {
 		if toData.Turn.PerformedAction == util.DrawCard {
 			for _, peer := range n.peers {
 				handCards := toData.CardDecks[peer.ch.Idx()].HandPile
+				fmt.Printf("You drew 1 %s.\n", handCards.Cards[handCards.Length()-1].CardType)
 				if initHandDrawn {
 					fmt.Printf("Hand: %s\n", handCards.Pretty())
-				} else {
-					fmt.Printf("You drew 1 %s.\n", handCards.Cards[handCards.Length()-1].CardType)
 				}
 			}
 		}
 
-		// >> initial card drawing
+		// >> auto card drawing
 
 		toData.Turn.IsActionAllowed(util.RngCommit)
-		if !initHandDrawn && toData.Turn.IsActionAllowed(util.RngCommit) {
+		if toData.Turn.IsActionAllowed(util.RngCommit) {
 			go n.drawCardStart()
 			return
 		}
