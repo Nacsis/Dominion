@@ -108,10 +108,14 @@ func (n *node) PlayCard(args []string) error {
 					return errors.New("No valid card name")
 				}
 
+				cid = -1
 				for i, card := range hand.Cards {
 					if c.CardType == card.CardType {
 						cid = i
 					}
+				}
+				if cid < 0 {
+					return errors.Errorf("No card of type %s in hand", c.CardType)
 				}
 			} else {
 				if cid >= hand.Length() {
