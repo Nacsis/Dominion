@@ -73,19 +73,19 @@ const (
 	//------------------------ Card ------------------------
 
 	CardTypeCount                  = 16
-	CopperInitialStock       uint8 = 30
-	SilverInitialStock       uint8 = 30
+	CopperInitialStock       uint8 = 60
+	SilverInitialStock       uint8 = 40
 	GoldInitialStock         uint8 = 30
-	VictorySmallInitialStock uint8 = 30
-	VictoryMidInitialStock   uint8 = 30
-	VictoryBigInitialStock   uint8 = 30
+	VictorySmallInitialStock uint8 = 24
+	VictoryMidInitialStock   uint8 = 12
+	VictoryBigInitialStock   uint8 = 12
 
 	CopperMoneyValue uint8 = 1
 	SilverMoneyValue uint8 = 2
 	GoldMoneyValue   uint8 = 3
 
 	CopperCost uint8 = 0
-	SilverCost uint8 = 2
+	SilverCost uint8 = 3
 	GoldCost   uint8 = 6
 
 	MoneyCardPlayCost uint8 = 0
@@ -94,12 +94,12 @@ const (
 	ActionCardVictoryPoint uint8 = 0
 
 	VictorySmallVictoryValue uint8 = 1
-	VictoryMidVictoryValue   uint8 = 2
-	VictoryBigVictoryValue   uint8 = 3
+	VictoryMidVictoryValue   uint8 = 3
+	VictoryBigVictoryValue   uint8 = 6
 
-	VictorySmallCost uint8 = 1
-	VictoryMidCost   uint8 = 2
-	VictoryBigCost   uint8 = 6
+	VictorySmallCost uint8 = 2
+	VictoryMidCost   uint8 = 5
+	VictoryBigCost   uint8 = 8
 
 	VictoryCardPlayCost uint8 = 0
 
